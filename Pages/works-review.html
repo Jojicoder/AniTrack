@@ -1,0 +1,73 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Reviews - AniTrack</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+<header></header>
+
+<section class="section">
+  <div id="content"></div>
+</section>
+
+<footer>
+  <p>&copy; 2026 AniTrack | Anime &amp; Manga Tracker</p>
+</footer>
+
+<script src="main.js"></script>
+<script>
+  initNav('works');
+
+  const id = getQueryParam('id');
+  const work = getWorkById(id);
+  const el = document.getElementById('content');
+
+  if (!work) {
+    el.innerHTML = '<div class="empty-state"><p>Work not found.</p><a href="works.html" class="btn">Back to Works</a></div>';
+  } else {
+    document.title = `Reviews: ${work.title} - AniTrack`;
+    const reviews = getReviewsByWork(work.id);
+    const avg = avgRating(reviews);
+    const user = getCurrentUser();
+    const alreadyReviewed = user && reviews.some(r => r.userId === user.id);
+
+    const reviewsHtml = reviews.length
+      ? reviews.slice().reverse().map(r => {
+          const u = getUserById(r.userId);
+          return `<div class="review-card">
+            <div class="review-header">
+              <span class="reviewer-name">${escHtml(u ? u.username : '?')}</span>
+              ${ratingBadge(r.rating)}
+              <span class="review-date">${r.createdAt}</span>
+            </div>
+            <p class="review-text">${escHtml(r.text)}</p>
+            <p class="review-status">Status: ${escHtml(r.userStatus)}</p>
+          </div>`;
+        }).join('')
+      : '<div class="empty-state"><p>No reviews yet. Be the first!</p></div>';
+
+    el.innerHTML = `
+      <div style="margin-bottom:16px">
+        <a href="works-detail.html?id=${work.id}" style="color:var(--muted);font-size:14px">&larr; Back to ${escHtml(work.title)}</a>
+      </div>
+      <div class="page-header">
+        <h2>${escHtml(work.title)}</h2>
+        <p>${escHtml(work.titleJp)} &middot; ${avg !== null ? `Avg Score &#9733; ${avg} / 10` : 'No reviews yet'} &middot; ${reviews.length} reviews</p>
+      </div>
+      <div style="text-align:center;margin-bottom:28px">
+        ${user
+          ? alreadyReviewed
+            ? '<span style="color:var(--muted)">&#10003; You have already reviewed this work</span>'
+            : `<a href="works-add-review.html?id=${work.id}" class="btn">Write a Review</a>`
+          : '<a href="login.html" class="btn btn-outline">Log in to Write a Review</a>'
+        }
+      </div>
+      <div class="review-list">${reviewsHtml}</div>`;
+  }
+</script>
+</body>
+</html>

@@ -1,0 +1,113 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Register - AniTrack</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+<header>
+  <nav class="navbar">
+    <a href="index.html" class="logo">AniTrack</a>
+    <ul class="nav-links">
+      <li><a href="index.html">Home</a></li>
+      <li><a href="recommendations.html">Recommendations</a></li>
+      <li><a href="about.html">About</a></li>
+      <li><a href="login.html">Login</a></li>
+      <li><a href="register.html" class="active">Register</a></li>
+    </ul>
+  </nav>
+</header>
+
+<section class="section">
+  <div class="page-header">
+    <h2>Create Account</h2>
+    <p>Join AniTrack and start building your library</p>
+  </div>
+
+  <div class="form-box">
+    <!-- PHP: <?php if (isset($error)) echo '<div class="alert alert-error">' . htmlspecialchars($error) . '</div>'; ?> -->
+    <form method="POST" action="">
+      <label for="full_name">Full Name</label>
+      <input
+        type="text"
+        id="full_name"
+        name="full_name"
+        placeholder="Your full name"
+        required
+        minlength="2"
+        maxlength="80"
+      >
+
+      <label for="email">Email</label>
+      <input
+        type="email"
+        id="email"
+        name="email"
+        placeholder="your@email.com"
+        required
+      >
+
+      <label for="username">Username</label>
+      <input
+        type="text"
+        id="username"
+        name="username"
+        placeholder="Choose a username"
+        required
+        minlength="3"
+        maxlength="30"
+        pattern="[A-Za-z0-9_]+"
+        title="Letters, numbers and underscores only"
+      >
+
+      <label for="password">Password</label>
+      <input
+        type="password"
+        id="password"
+        name="password"
+        placeholder="At least 6 characters"
+        required
+        minlength="6"
+      >
+
+      <label for="confirm_password">Confirm Password</label>
+      <input
+        type="password"
+        id="confirm_password"
+        name="confirm_password"
+        placeholder="Enter password again"
+        required
+      >
+
+      <div id="msg"></div>
+
+      <button type="submit" class="btn" style="width:100%">Create Account</button>
+    </form>
+
+    <p style="text-align:center;margin-top:18px;font-size:14px;color:var(--muted)">
+      Already have an account? <a href="login.html" style="color:var(--accent)">Log in</a>
+    </p>
+  </div>
+</section>
+
+<footer>
+  <p>&copy; 2026 AniTrack | Anime &amp; Manga Tracker</p>
+</footer>
+
+<script src="utils.js"></script>
+<script>
+  document.querySelector('form').addEventListener('submit', function(e) {
+    const pwd  = document.getElementById('password').value;
+    const pwd2 = document.getElementById('confirm_password').value;
+    const msgEl = document.getElementById('msg');
+    if (pwd !== pwd2) {
+      e.preventDefault();
+      showAlert(msgEl, 'error', 'Passwords do not match');
+    }
+  });
+</script>
+</body>
+</html>

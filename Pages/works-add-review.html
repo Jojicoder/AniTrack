@@ -1,0 +1,106 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Add Review - AniTrack</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+<header></header>
+
+<section class="section">
+  <div id="content"></div>
+</section>
+
+<footer>
+  <p>&copy; 2026 AniTrack | Anime &amp; Manga Tracker</p>
+</footer>
+
+<script src="main.js"></script>
+<script>
+  const user = requireAuth();
+  if (user) {
+    initNav('works');
+
+    const id = getQueryParam('id');
+    const work = getWorkById(id);
+    const el = document.getElementById('content');
+
+    if (!work) {
+      el.innerHTML = '<div class="empty-state"><p>Work not found.</p><a href="works.html" class="btn">Back to Works</a></div>';
+    } else {
+      const existing = getReviews().find(r => r.workId === work.id && r.userId === user.id);
+      if (existing) {
+        el.innerHTML = `<div class="empty-state">
+          <p>You have already reviewed this work.</p>
+          <a href="works-review.html?id=${work.id}" class="btn">View Reviews</a>
+        </div>`;
+      } else {
+        document.title = `Review: ${work.title} - AniTrack`;
+        const statusOptions = work.type === 'anime'
+          ? ['Watching', 'Completed', 'On Hold', 'Dropped', 'Plan to Watch']
+          : ['Reading', 'Completed', 'On Hold', 'Dropped', 'Plan to Read'];
+
+        el.innerHTML = `
+          <div style="margin-bottom:16px">
+            <a href="works-detail.html?id=${work.id}" style="color:var(--muted);font-size:14px">&larr; Back to ${escHtml(work.title)}</a>
+          </div>
+          <div class="page-header">
+            <h2>Write a Review</h2>
+            <p>${escHtml(work.title)} &middot; ${escHtml(work.titleJp)}</p>
+          </div>
+          <div class="form-box">
+            <div id="msg"></div>
+            <form id="review-form">
+              <label>Score (1&ndash;10)</label>
+              <select id="rating" required>
+                <option value="">Select a score</option>
+                ${[10,9,8,7,6,5,4,3,2,1].map(n => `<option value="${n}">&#9733; ${n} / 10</option>`).join('')}
+              </select>
+
+              <label>Your Status</label>
+              <select id="user-status" required>
+                <option value="">Select status</option>
+                ${statusOptions.map(s => `<option value="${s}">${s}</option>`).join('')}
+              </select>
+
+              <label>Review</label>
+              <textarea id="review-text" rows="6" placeholder="Write your thoughts about this work..." required></textarea>
+
+              <button type="submit" class="btn">Submit Review</button>
+            </form>
+          </div>`;
+
+        document.getElementById('review-form').addEventListener('submit', function(e) {
+          e.preventDefault();
+          const rating = Number(document.getElementById('rating').value);
+          const userStatus = document.getElementById('user-status').value;
+          const text = document.getElementById('review-text').value.trim();
+          const msgEl = document.getElementById('msg');
+
+          if (!rating || !userStatus || !text) {
+            showAlert(msgEl, 'error', 'Please fill in all fields');
+            return;
+          }
+
+          const reviews = getReviews();
+          reviews.push({
+            id: Date.now(),
+            workId: work.id,
+            userId: user.id,
+            rating,
+            userStatus,
+            text,
+            createdAt: new Date().toISOString().split('T')[0]
+          });
+          saveReviews(reviews);
+          window.location.href = `works-review.html?id=${work.id}`;
+        });
+      }
+    }
+  }
+</script>
+</body>
+</html>

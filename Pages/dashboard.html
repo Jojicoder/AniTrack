@@ -3,90 +3,196 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Dashboard - MangaShelf</title>
+  <title>My Library - AniTrack</title>
   <link rel="stylesheet" href="style.css">
 </head>
 <body>
 
 <header>
   <nav class="navbar">
-    <div class="logo">MangaShelf</div>
+    <a href="index.html" class="logo">AniTrack</a>
     <ul class="nav-links">
       <li><a href="index.html">Home</a></li>
-      <li><a href="register.html">Register</a></li>
-      <li><a href="login.html">Login</a></li>
-      <li><a href="dashboard.html">Dashboard</a></li>
-      <li><a href="add-entry.html">Add Manga</a></li>
+      <li><a href="dashboard.html" class="active">My Library</a></li>
+      <li><a href="works.html">Browse Works</a></li>
       <li><a href="recommendations.html">Recommendations</a></li>
       <li><a href="about.html">About</a></li>
+      <li><a href="logout.php">Logout</a></li>
     </ul>
   </nav>
 </header>
 
-
 <section class="section">
-  <h2>My Manga Dashboard</h2>
-  <p>This page shows your saved manga list and reading status.</p>
+  <div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:14px;margin-bottom:28px">
+    <div>
+      <h2 style="color:var(--accent);font-size:clamp(26px,4vw,40px);font-weight:800;text-align:left;margin-bottom:4px">My Library</h2>
+      <p style="color:var(--muted);font-size:15px">Your anime &amp; manga collection</p>
+    </div>
+    <a href="add-entry.html" class="btn">+ Add Entry</a>
+  </div>
 
-  <div class="search-area">
-    <input type="text" placeholder="Search manga title">
-    <select>
-      <option>All Status</option>
-      <option>Reading</option>
-      <option>Completed</option>
-      <option>Plan to Read</option>
-      <option>Dropped</option>
+  <!-- Search & Filter -->
+  <div class="filter-area">
+    <input type="text" id="q" placeholder="Search by title...">
+    <select id="type-filter">
+      <option value="">All Types</option>
+      <option value="anime">Anime</option>
+      <option value="manga">Manga</option>
     </select>
-    <select>
-      <option>All Genre</option>
-      <option>Action</option>
-      <option>Romance</option>
-      <option>Fantasy</option>
-      <option>Sports</option>
+    <select id="status-filter">
+      <option value="">All Status</option>
+      <option value="Watching">Watching</option>
+      <option value="Completed">Completed</option>
+      <option value="Plan to Watch">Plan to Watch</option>
+      <option value="On Hold">On Hold</option>
+      <option value="Dropped">Dropped</option>
+      <option value="Reading">Reading</option>
+      <option value="Plan to Read">Plan to Read</option>
     </select>
   </div>
 
-  <div class="grid">
-    <div class="card">
-      <img src="images/solo-leveling.jpg" alt="Solo Leveling">
-      <div class="card-content">
-        <span class="status">Reading</span>
-        <h3>Solo Leveling</h3>
-        <p><strong>Chapter:</strong> 85</p>
-        <p><strong>Rating:</strong> 9/10</p>
-        <p><strong>Note:</strong> The action and artwork are really strong.</p>
-        <a href="detail.html" class="btn">View Detail</a>
+  <!-- Stats row -->
+  <div class="stats-grid" style="margin-bottom:32px">
+    <div class="stat-card"><div class="stat-num" id="total-count">0</div><div class="stat-label">Total Entries</div></div>
+    <div class="stat-card"><div class="stat-num" id="anime-count">0</div><div class="stat-label">Anime</div></div>
+    <div class="stat-card"><div class="stat-num" id="manga-count">0</div><div class="stat-label">Manga</div></div>
+    <div class="stat-card"><div class="stat-num" id="completed-count">0</div><div class="stat-label">Completed</div></div>
+  </div>
+
+  <!--
+    PHP: Loop through $entries from DB here.
+    Example structure shown below as a template.
+    Replace this block with PHP while($row = $result->fetch_assoc()):
+  -->
+  <div class="entry-list" id="entry-list">
+
+    <!-- Sample Entry 1 -->
+    <div class="entry-card" data-title="Demon Slayer" data-type="anime" data-status="Completed">
+      <div class="entry-thumb-placeholder" style="background:linear-gradient(135deg,#7b3ff2cc,#7b3ff244)">ANIME</div>
+      <div class="entry-info">
+        <h3>Demon Slayer</h3>
+        <p><span class="tag tag-anime" style="font-size:11px">Anime</span> &nbsp; <span class="tag" style="font-size:11px">Action</span></p>
+        <p>Status: <strong>Completed</strong></p>
+        <p>Rating: <span class="stars">★★★★★</span> <span style="color:var(--muted);font-size:13px">9 / 10</span></p>
+        <div class="entry-actions">
+          <a href="detail.html?id=1" class="btn btn-sm btn-outline">View</a>
+          <a href="add-entry.html?id=1" class="btn btn-sm btn-muted">Edit</a>
+          <a href="delete.php?id=1" class="btn btn-sm btn-danger" onclick="return confirm('Delete this entry?')">Delete</a>
+        </div>
       </div>
     </div>
 
-    <div class="card">
-      <img src="images/berserk.jpg" alt="Berserk">
-      <div class="card-content">
-        <span class="status">Plan to Read</span>
+    <!-- Sample Entry 2 -->
+    <div class="entry-card" data-title="Attack on Titan" data-type="anime" data-status="Completed">
+      <div class="entry-thumb-placeholder" style="background:linear-gradient(135deg,#475569cc,#47556944)">ANIME</div>
+      <div class="entry-info">
+        <h3>Attack on Titan</h3>
+        <p><span class="tag tag-anime" style="font-size:11px">Anime</span> &nbsp; <span class="tag" style="font-size:11px">Action</span></p>
+        <p>Status: <strong>Completed</strong></p>
+        <p>Rating: <span class="stars">★★★★★</span> <span style="color:var(--muted);font-size:13px">10 / 10</span></p>
+        <div class="entry-actions">
+          <a href="detail.html?id=2" class="btn btn-sm btn-outline">View</a>
+          <a href="add-entry.html?id=2" class="btn btn-sm btn-muted">Edit</a>
+          <a href="delete.php?id=2" class="btn btn-sm btn-danger" onclick="return confirm('Delete this entry?')">Delete</a>
+        </div>
+      </div>
+    </div>
+
+    <!-- Sample Entry 3 -->
+    <div class="entry-card" data-title="Berserk" data-type="manga" data-status="Reading">
+      <div class="entry-thumb-placeholder" style="background:linear-gradient(135deg,#6b21a8cc,#6b21a844)">MANGA</div>
+      <div class="entry-info">
         <h3>Berserk</h3>
-        <p><strong>Chapter:</strong> 0</p>
-        <p><strong>Rating:</strong> Not rated</p>
-        <p><strong>Note:</strong> I want to start this because many readers recommend it.</p>
-        <a href="detail.html" class="btn">View Detail</a>
+        <p><span class="tag tag-manga" style="font-size:11px">Manga</span> &nbsp; <span class="tag" style="font-size:11px">Dark Fantasy</span></p>
+        <p>Status: <strong>Reading</strong></p>
+        <p>Rating: <span class="stars">★★★★★</span> <span style="color:var(--muted);font-size:13px">10 / 10</span></p>
+        <div class="entry-actions">
+          <a href="detail.html?id=3" class="btn btn-sm btn-outline">View</a>
+          <a href="add-entry.html?id=3" class="btn btn-sm btn-muted">Edit</a>
+          <a href="delete.php?id=3" class="btn btn-sm btn-danger" onclick="return confirm('Delete this entry?')">Delete</a>
+        </div>
       </div>
     </div>
 
-    <div class="card">
-      <img src="images/blue-lock.jpg" alt="Blue Lock">
-      <div class="card-content">
-        <span class="status">Reading</span>
-        <h3>Blue Lock</h3>
-        <p><strong>Chapter:</strong> 120</p>
-        <p><strong>Rating:</strong> 8/10</p>
-        <p><strong>Note:</strong> It makes soccer feel intense and competitive.</p>
-        <a href="detail.html" class="btn">View Detail</a>
+    <!-- Sample Entry 4 -->
+    <div class="entry-card" data-title="One Piece" data-type="manga" data-status="Reading">
+      <div class="entry-thumb-placeholder" style="background:linear-gradient(135deg,#1d4ed8cc,#1d4ed844)">MANGA</div>
+      <div class="entry-info">
+        <h3>One Piece</h3>
+        <p><span class="tag tag-manga" style="font-size:11px">Manga</span> &nbsp; <span class="tag" style="font-size:11px">Adventure</span></p>
+        <p>Status: <strong>Reading</strong></p>
+        <p>Rating: <span class="stars">★★★★☆</span> <span style="color:var(--muted);font-size:13px">8 / 10</span></p>
+        <div class="entry-actions">
+          <a href="detail.html?id=4" class="btn btn-sm btn-outline">View</a>
+          <a href="add-entry.html?id=4" class="btn btn-sm btn-muted">Edit</a>
+          <a href="delete.php?id=4" class="btn btn-sm btn-danger" onclick="return confirm('Delete this entry?')">Delete</a>
+        </div>
       </div>
     </div>
+
+    <!-- Sample Entry 5 -->
+    <div class="entry-card" data-title="Blue Period" data-type="manga" data-status="Plan to Read">
+      <div class="entry-thumb-placeholder" style="background:linear-gradient(135deg,#0891b2cc,#0891b244)">MANGA</div>
+      <div class="entry-info">
+        <h3>Blue Period</h3>
+        <p><span class="tag tag-manga" style="font-size:11px">Manga</span> &nbsp; <span class="tag" style="font-size:11px">Slice of Life</span></p>
+        <p>Status: <strong>Plan to Read</strong></p>
+        <p>Rating: <span style="color:var(--muted);font-size:13px">Not rated yet</span></p>
+        <div class="entry-actions">
+          <a href="detail.html?id=5" class="btn btn-sm btn-outline">View</a>
+          <a href="add-entry.html?id=5" class="btn btn-sm btn-muted">Edit</a>
+          <a href="delete.php?id=5" class="btn btn-sm btn-danger" onclick="return confirm('Delete this entry?')">Delete</a>
+        </div>
+      </div>
+    </div>
+
+  </div><!-- /entry-list -->
+
+  <div id="no-results" class="empty-state" style="display:none">
+    <p>No entries match your search.</p>
   </div>
+
 </section>
 
 <footer>
-  <p>&copy; 2026 MangaShelf | Manga Tracking Website Project</p>
+  <p>&copy; 2026 AniTrack | Anime &amp; Manga Tracker</p>
 </footer>
+
+<script>
+  const entries = document.querySelectorAll('.entry-card');
+  const noRes   = document.getElementById('no-results');
+
+  function updateStats(visible) {
+    document.getElementById('total-count').textContent    = visible.length;
+    document.getElementById('anime-count').textContent    = visible.filter(e => e.dataset.type === 'anime').length;
+    document.getElementById('manga-count').textContent    = visible.filter(e => e.dataset.type === 'manga').length;
+    document.getElementById('completed-count').textContent = visible.filter(e => e.dataset.status === 'Completed').length;
+  }
+
+  function filterEntries() {
+    const q      = document.getElementById('q').value.toLowerCase();
+    const type   = document.getElementById('type-filter').value;
+    const status = document.getElementById('status-filter').value;
+    const visible = [];
+
+    entries.forEach(card => {
+      const match =
+        (!q      || card.dataset.title.toLowerCase().includes(q)) &&
+        (!type   || card.dataset.type === type) &&
+        (!status || card.dataset.status === status);
+      card.style.display = match ? '' : 'none';
+      if (match) visible.push(card);
+    });
+
+    noRes.style.display = visible.length ? 'none' : 'block';
+    updateStats(visible);
+  }
+
+  ['q','type-filter','status-filter'].forEach(id =>
+    document.getElementById(id).addEventListener('input', filterEntries)
+  );
+
+  filterEntries();
+</script>
 </body>
 </html>

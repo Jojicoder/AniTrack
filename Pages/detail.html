@@ -1,0 +1,131 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Entry Detail - AniTrack</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+<header>
+  <nav class="navbar">
+    <a href="index.html" class="logo">AniTrack</a>
+    <ul class="nav-links">
+      <li><a href="index.html">Home</a></li>
+      <li><a href="dashboard.html">My Library</a></li>
+      <li><a href="works.html">Browse Works</a></li>
+      <li><a href="recommendations.html">Recommendations</a></li>
+      <li><a href="about.html">About</a></li>
+      <li><a href="logout.php">Logout</a></li>
+    </ul>
+  </nav>
+</header>
+
+<section class="section">
+
+  <div style="margin-bottom:20px">
+    <a href="dashboard.html" style="color:var(--muted);font-size:14px">&larr; Back to My Library</a>
+  </div>
+
+  <!--
+    PHP: Replace the static content below with dynamic data from DB.
+    Example: $entry = fetch entry by $_GET['id'] where user_id = $_SESSION['user_id']
+  -->
+
+  <div class="detail-grid">
+
+    <!-- Cover Image -->
+    <div class="detail-cover">
+      <!--
+        PHP: If $entry['image'] is set, show:
+        <img src="uploads/<?= htmlspecialchars($entry['image']) ?>" alt="Cover">
+        Otherwise show the placeholder div below.
+      -->
+      <div class="detail-cover-placeholder" style="background:linear-gradient(135deg,#7b3ff2cc,#7b3ff244)">
+        NO IMAGE
+      </div>
+
+      <div style="margin-top:16px;display:grid;gap:8px">
+        <a href="add-entry.html?id=1" class="btn" style="width:100%;text-align:center">Edit Entry</a>
+        <a href="delete.php?id=1" class="btn btn-danger" style="width:100%;text-align:center"
+           onclick="return confirm('Are you sure you want to delete this entry?')">Delete Entry</a>
+      </div>
+    </div>
+
+    <!-- Entry Info -->
+    <div class="detail-info">
+      <!-- PHP: echo htmlspecialchars($entry['title']) -->
+      <h2>Demon Slayer</h2>
+
+      <div style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:18px">
+        <!-- PHP: tag based on $entry['type'] -->
+        <span class="tag tag-anime">Anime</span>
+        <span class="tag tag-status">Completed</span>
+      </div>
+
+      <!-- Meta grid -->
+      <div class="detail-meta">
+        <div class="meta-item">
+          <div class="meta-label">Type</div>
+          <!-- PHP: echo ucfirst(htmlspecialchars($entry['type'])) -->
+          <div class="meta-value">Anime</div>
+        </div>
+        <div class="meta-item">
+          <div class="meta-label">Status</div>
+          <!-- PHP: echo htmlspecialchars($entry['status']) -->
+          <div class="meta-value" style="font-size:15px">Completed</div>
+        </div>
+        <div class="meta-item">
+          <div class="meta-label">Rating</div>
+          <!-- PHP: echo $entry['rating'] ? $entry['rating'] . ' / 10' : '—' -->
+          <div class="meta-value">9 / 10</div>
+        </div>
+        <div class="meta-item">
+          <div class="meta-label">Added</div>
+          <!-- PHP: echo date('Y-m-d', strtotime($entry['created_at'])) -->
+          <div class="meta-value" style="font-size:14px">2026-05-01</div>
+        </div>
+      </div>
+
+      <!-- Star display -->
+      <div style="margin-bottom:22px">
+        <span class="stars" style="font-size:24px">★★★★★</span>
+        <span style="color:var(--muted);font-size:15px;margin-left:8px">9 out of 10</span>
+      </div>
+
+      <!-- Review box -->
+      <div class="detail-review-box">
+        <h4>My Review</h4>
+        <!--
+          PHP: If $entry['review'] is set:
+          echo nl2br(htmlspecialchars($entry['review']))
+          Otherwise show placeholder.
+        -->
+        <p>
+          Beautiful animation and an emotional story. The water breathing techniques look incredible.
+          The Mugen Train arc in particular was a standout — both visually and emotionally.
+          Highly recommended to anyone who hasn't watched it yet.
+        </p>
+      </div>
+
+    </div>
+  </div>
+
+</section>
+
+<footer>
+  <p>&copy; 2026 AniTrack | Anime &amp; Manga Tracker</p>
+</footer>
+
+<script src="utils.js"></script>
+<script>
+  // Star display based on rating
+  function renderStars(rating) {
+    if (!rating) return '—';
+    const full = Math.round(rating / 2);
+    return '★'.repeat(full) + '☆'.repeat(5 - full);
+  }
+</script>
+</body>
+</html>

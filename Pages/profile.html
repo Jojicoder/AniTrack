@@ -1,0 +1,72 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Profile - AniTrack</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+<header></header>
+
+<section class="section">
+  <div id="content"></div>
+</section>
+
+<footer>
+  <p>&copy; 2026 AniTrack | Anime &amp; Manga Tracker</p>
+</footer>
+
+<script src="main.js"></script>
+<script>
+  const user = requireAuth();
+  if (user) {
+    initNav('profile');
+    document.title = `${user.username}'s Profile - AniTrack`;
+
+    const fullUser = getUserById(user.id);
+    const reviews = getReviewsByUser(user.id);
+    const animeCount = reviews.filter(r => { const w = getWorkById(r.workId); return w && w.type === 'anime'; }).length;
+    const mangaCount = reviews.filter(r => { const w = getWorkById(r.workId); return w && w.type === 'manga'; }).length;
+
+    const reviewsHtml = reviews.length
+      ? reviews.slice().reverse().map(r => {
+          const w = getWorkById(r.workId);
+          return `<div class="review-card">
+            <div class="review-header">
+              <a href="works-detail.html?id=${r.workId}" style="font-weight:800;color:var(--text)">${escHtml(w ? w.title : '?')}</a>
+              <span class="tag ${w && w.type === 'anime' ? 'tag-anime' : 'tag-manga'}" style="font-size:11px">${w ? w.type : '?'}</span>
+              ${ratingBadge(r.rating)}
+              <span class="review-date">${r.createdAt}</span>
+            </div>
+            <p class="review-text">${escHtml(r.text)}</p>
+            <p class="review-status">Status: ${escHtml(r.userStatus)}</p>
+          </div>`;
+        }).join('')
+      : '<div class="empty-state"><p>No reviews yet.</p><a href="works.html" class="btn">Browse Works</a></div>';
+
+    document.getElementById('content').innerHTML = `
+      <div class="profile-header">
+        <div class="profile-avatar">${escHtml(user.username.charAt(0).toUpperCase())}</div>
+        <div class="profile-info">
+          <h3>${escHtml(user.username)}
+            ${fullUser && fullUser.role === 'admin' ? '<span class="badge badge-admin" style="margin-left:8px">Admin</span>' : ''}
+          </h3>
+          <p>${fullUser ? escHtml(fullUser.email) : ''}</p>
+          <p>Joined: ${fullUser ? fullUser.createdAt : '—'}</p>
+        </div>
+      </div>
+
+      <div class="stats-grid" style="margin-bottom:28px">
+        <div class="stat-card"><div class="stat-num">${reviews.length}</div><div class="stat-label">Reviews</div></div>
+        <div class="stat-card"><div class="stat-num">${animeCount}</div><div class="stat-label">Anime</div></div>
+        <div class="stat-card"><div class="stat-num">${mangaCount}</div><div class="stat-label">Manga</div></div>
+      </div>
+
+      <h3 style="color:var(--accent);font-size:20px;font-weight:800;margin-bottom:4px">Review History</h3>
+      <div class="review-list">${reviewsHtml}</div>`;
+  }
+</script>
+</body>
+</html>
