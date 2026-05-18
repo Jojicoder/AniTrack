@@ -1,0 +1,4 @@
+config/db.php
+assets/images/
+.DS_Store
+*.log
