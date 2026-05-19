@@ -1,113 +1,353 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
+
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
   <title>Register - AniTrack</title>
-  <link rel="stylesheet" href="style.css">
+
+  <style>
+
+    *{
+      margin:0;
+      padding:0;
+      box-sizing:border-box;
+      font-family:Arial, sans-serif;
+    }
+
+    body{
+
+      /* BACKGROUND IMAGE */
+
+      background-image:url("berserk-e1594835159209.jpg");
+
+      background-size:cover;
+      background-position:center;
+      background-repeat:no-repeat;
+      background-attachment:fixed;
+
+      color:white;
+      min-height:100vh;
+    }
+
+    /* DARK OVERLAY */
+
+    body::before{
+
+      content:"";
+
+      position:fixed;
+
+      top:0;
+      left:0;
+
+      width:100%;
+      height:100%;
+
+      background:rgba(0,0,0,0.70);
+
+      z-index:-1;
+    }
+
+    /* HEADER */
+
+    header{
+
+      background:rgba(0,0,0,0.8);
+
+      padding:15px 40px;
+    }
+
+    .navbar{
+
+      display:flex;
+
+      justify-content:space-between;
+
+      align-items:center;
+    }
+
+    .logo{
+
+      text-decoration:none;
+
+      color:white;
+
+      font-size:32px;
+
+      font-weight:bold;
+    }
+
+    /* NAV LINKS */
+
+    .nav-links{
+
+      display:flex;
+
+      list-style:none;
+
+      gap:25px;
+    }
+
+    .nav-links a{
+
+      text-decoration:none;
+
+      color:white;
+
+      font-size:18px;
+
+      transition:0.3s;
+    }
+
+    .nav-links a:hover,
+    .nav-links .active{
+
+      color:red;
+    }
+
+    /* MAIN SECTION */
+
+    .section{
+
+      min-height:85vh;
+
+      display:flex;
+
+      flex-direction:column;
+
+      justify-content:center;
+
+      align-items:center;
+
+      padding:20px;
+    }
+
+    .page-header{
+
+      text-align:center;
+
+      margin-bottom:30px;
+    }
+
+    .page-header h2{
+
+      font-size:60px;
+
+      margin-bottom:10px;
+
+      text-shadow:3px 3px 10px black;
+    }
+
+    .page-header p{
+
+      font-size:22px;
+
+      text-shadow:2px 2px 8px black;
+    }
+
+    /* FORM BOX */
+
+    .form-box{
+
+      width:100%;
+
+      max-width:500px;
+
+      background:rgba(0,0,0,0.75);
+
+      padding:35px;
+
+      border-radius:15px;
+
+      backdrop-filter:blur(5px);
+    }
+
+    form{
+
+      display:flex;
+
+      flex-direction:column;
+    }
+
+    label{
+
+      margin-top:15px;
+
+      margin-bottom:5px;
+    }
+
+    input{
+
+      padding:12px;
+
+      border:none;
+
+      border-radius:8px;
+
+      font-size:16px;
+
+      outline:none;
+    }
+
+    /* BUTTON */
+
+    .btn{
+
+      margin-top:25px;
+
+      padding:14px;
+
+      border:none;
+
+      border-radius:10px;
+
+      background:red;
+
+      color:white;
+
+      font-size:18px;
+
+      font-weight:bold;
+
+      cursor:pointer;
+
+      transition:0.3s;
+    }
+
+    .btn:hover{
+
+      background:white;
+
+      color:black;
+    }
+
+    /* FOOTER */
+
+    footer{
+
+      text-align:center;
+
+      padding:20px;
+
+      background:rgba(0,0,0,0.8);
+    }
+
+    /* MOBILE */
+
+    @media(max-width:768px){
+
+      .navbar{
+
+        flex-direction:column;
+
+        gap:20px;
+      }
+
+      .nav-links{
+
+        flex-wrap:wrap;
+
+        justify-content:center;
+      }
+
+      .page-header h2{
+
+        font-size:40px;
+      }
+
+    }
+
+  </style>
+
 </head>
+
 <body>
 
 <header>
+
   <nav class="navbar">
-    <a href="index.html" class="logo">AniTrack</a>
+
+    <a href="index.html" class="logo">
+
+      AniTrack
+
+    </a>
+
     <ul class="nav-links">
+
       <li><a href="index.html">Home</a></li>
+
       <li><a href="recommendations.html">Recommendations</a></li>
+
       <li><a href="about.html">About</a></li>
+
       <li><a href="login.html">Login</a></li>
+
       <li><a href="register.html" class="active">Register</a></li>
+
     </ul>
+
   </nav>
+
 </header>
 
 <section class="section">
+
   <div class="page-header">
+
     <h2>Create Account</h2>
-    <p>Join AniTrack and start building your library</p>
+
+    <p>
+      Join AniTrack and start building your library
+    </p>
+
   </div>
 
   <div class="form-box">
-    <!-- PHP: <?php if (isset($error)) echo '<div class="alert alert-error">' . htmlspecialchars($error) . '</div>'; ?> -->
-    <form method="POST" action="">
-      <label for="full_name">Full Name</label>
-      <input
-        type="text"
-        id="full_name"
-        name="full_name"
-        placeholder="Your full name"
-        required
-        minlength="2"
-        maxlength="80"
-      >
 
-      <label for="email">Email</label>
-      <input
-        type="email"
-        id="email"
-        name="email"
-        placeholder="your@email.com"
-        required
-      >
+    <form>
 
-      <label for="username">Username</label>
-      <input
-        type="text"
-        id="username"
-        name="username"
-        placeholder="Choose a username"
-        required
-        minlength="3"
-        maxlength="30"
-        pattern="[A-Za-z0-9_]+"
-        title="Letters, numbers and underscores only"
-      >
+      <label>Full Name</label>
 
-      <label for="password">Password</label>
-      <input
-        type="password"
-        id="password"
-        name="password"
-        placeholder="At least 6 characters"
-        required
-        minlength="6"
-      >
+      <input type="text" placeholder="Your full name">
 
-      <label for="confirm_password">Confirm Password</label>
-      <input
-        type="password"
-        id="confirm_password"
-        name="confirm_password"
-        placeholder="Enter password again"
-        required
-      >
+      <label>Email</label>
 
-      <div id="msg"></div>
+      <input type="email" placeholder="your@email.com">
 
-      <button type="submit" class="btn" style="width:100%">Create Account</button>
+      <label>Username</label>
+
+      <input type="text" placeholder="Choose a username">
+
+      <label>Password</label>
+
+      <input type="password" placeholder="At least 6 characters">
+
+      <label>Confirm Password</label>
+
+      <input type="password" placeholder="Enter password again">
+
+      <button type="submit" class="btn">
+
+        Create Account
+
+      </button>
+
     </form>
 
-    <p style="text-align:center;margin-top:18px;font-size:14px;color:var(--muted)">
-      Already have an account? <a href="login.html" style="color:var(--accent)">Log in</a>
-    </p>
   </div>
+
 </section>
 
 <footer>
-  <p>&copy; 2026 AniTrack | Anime &amp; Manga Tracker</p>
+
+  © 2026 AniTrack | Anime & Manga Tracker
+
 </footer>
 
-<script src="utils.js"></script>
-<script>
-  document.querySelector('form').addEventListener('submit', function(e) {
-    const pwd  = document.getElementById('password').value;
-    const pwd2 = document.getElementById('confirm_password').value;
-    const msgEl = document.getElementById('msg');
-    if (pwd !== pwd2) {
-      e.preventDefault();
-      showAlert(msgEl, 'error', 'Passwords do not match');
-    }
-  });
-</script>
 </body>
+
 </html>
