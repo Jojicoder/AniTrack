@@ -78,14 +78,14 @@ a.logo {
 .dropdown-menu {
   display: none;
   position: absolute;
-  top: calc(100% + 10px);
+  top: 100%;
   right: 0;
   min-width: 170px;
   list-style: none;
   background: var(--panel);
   border: 1px solid var(--border);
   border-radius: 8px;
-  padding: 6px 0;
+  padding: 16px 0 6px;
   box-shadow: var(--shadow);
   z-index: 200;
 }
