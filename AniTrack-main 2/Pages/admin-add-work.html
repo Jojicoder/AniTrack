@@ -1,0 +1,137 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Add Work - Admin - AniTrack</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+<header></header>
+
+<section class="section">
+  <div class="page-header">
+    <h2>Add Work</h2>
+    <p>Add a new anime or manga title</p>
+  </div>
+
+  <div style="text-align:center;margin-bottom:20px">
+    <a href="admin-users.html" class="btn btn-muted btn-sm">Manage Users &rarr;</a>
+  </div>
+
+  <div class="form-box">
+    <div id="msg"></div>
+    <form id="add-form">
+      <label>Title (English)</label>
+      <input type="text" id="title" placeholder="e.g. Attack on Titan" required>
+
+      <label>Title (Japanese)</label>
+      <input type="text" id="title-jp" placeholder="e.g. 鋼の錬金術師" required>
+
+      <label>Type</label>
+      <select id="type" required>
+        <option value="">Select type</option>
+        <option value="anime">Anime</option>
+        <option value="manga">Manga</option>
+      </select>
+
+      <label>Genre</label>
+      <select id="genre" required>
+        <option value="">Select genre</option>
+        <option>Action</option>
+        <option>Adventure</option>
+        <option>Romance</option>
+        <option>Fantasy</option>
+        <option>Comedy</option>
+        <option>Horror</option>
+        <option>Slice of Life</option>
+        <option>Historical</option>
+        <option>Dark Fantasy</option>
+        <option>Drama</option>
+        <option>Sci-Fi</option>
+        <option>Sports</option>
+        <option>Mystery</option>
+      </select>
+
+      <label>Start Year</label>
+      <input type="number" id="year" placeholder="e.g. 2024" min="1950" max="2030" required>
+
+      <div id="eps-field">
+        <label>Episodes (Anime)</label>
+        <input type="number" id="episodes" placeholder="e.g. 26" min="1">
+      </div>
+      <div id="ch-field" style="display:none">
+        <label>Chapters (Manga)</label>
+        <input type="number" id="chapters" placeholder="e.g. 100" min="1">
+      </div>
+
+      <label>Status</label>
+      <select id="status" required>
+        <option value="">Select status</option>
+        <option>Airing</option>
+        <option>Completed</option>
+        <option>Upcoming</option>
+        <option>Ongoing</option>
+        <option>Hiatus</option>
+      </select>
+
+      <label>Synopsis</label>
+      <textarea id="synopsis" rows="5" placeholder="Enter a brief synopsis..." required></textarea>
+
+      <button type="submit" class="btn">Add Work</button>
+    </form>
+  </div>
+</section>
+
+<footer>
+  <p>&copy; 2026 AniTrack | Anime &amp; Manga Tracker</p>
+</footer>
+
+<script src="main.js"></script>
+<script>
+  const admin = requireAdmin();
+  if (admin) {
+    initNav('admin');
+
+    document.getElementById('type').addEventListener('change', function() {
+      const isAnime = this.value === 'anime';
+      document.getElementById('eps-field').style.display = isAnime ? 'grid' : 'none';
+      document.getElementById('ch-field').style.display = isAnime ? 'none' : 'grid';
+    });
+
+    document.getElementById('add-form').addEventListener('submit', function(e) {
+      e.preventDefault();
+      const msgEl = document.getElementById('msg');
+      const type = document.getElementById('type').value;
+      const title = document.getElementById('title').value.trim();
+      const titleJp = document.getElementById('title-jp').value.trim();
+      const genre = document.getElementById('genre').value;
+      const year = Number(document.getElementById('year').value);
+      const episodes = type === 'anime' ? (Number(document.getElementById('episodes').value) || null) : null;
+      const chapters = type === 'manga' ? (Number(document.getElementById('chapters').value) || null) : null;
+      const status = document.getElementById('status').value;
+      const synopsis = document.getElementById('synopsis').value.trim();
+
+      if (!title || !titleJp || !type || !genre || !year || !status || !synopsis) {
+        showAlert(msgEl, 'error', 'Please fill in all required fields');
+        return;
+      }
+
+      const works = getWorks();
+      if (works.find(w => w.title.toLowerCase() === title.toLowerCase())) {
+        showAlert(msgEl, 'error', 'This work is already registered');
+        return;
+      }
+
+      works.push({ id: Date.now(), title, titleJp, type, genre, year, episodes, chapters, status, synopsis });
+      saveWorks(works);
+      showAlert(msgEl, 'success', `"${title}" has been added!`);
+      document.getElementById('add-form').reset();
+      document.getElementById('eps-field').style.display = 'grid';
+      document.getElementById('ch-field').style.display = 'none';
+    });
+  }
+</script>
+</body>
+</html>

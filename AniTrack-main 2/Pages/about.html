@@ -1,0 +1,374 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+  <title>AniTrack</title>
+
+  <style>
+
+    *{
+      margin:0;
+      padding:0;
+      box-sizing:border-box;
+      font-family:Arial, sans-serif;
+    }
+
+    body{
+
+      /* BACKGROUND IMAGE */
+
+      background-image:url("one piece .jpg");
+
+      background-size:cover;
+      background-position:center;
+      background-repeat:no-repeat;
+      background-attachment:fixed;
+
+      color:white;
+      min-height:100vh;
+    }
+
+    /* DARK OVERLAY */
+
+    body::before{
+
+      content:"";
+      position:fixed;
+      top:0;
+      left:0;
+      width:100%;
+      height:100%;
+
+      background:rgba(0,0,0,0.65);
+
+      z-index:-1;
+    }
+
+    /* HEADER */
+
+    header{
+
+      background:rgba(0,0,0,0.8);
+
+      padding:15px 40px;
+    }
+
+    .navbar{
+
+      display:flex;
+      justify-content:space-between;
+      align-items:center;
+    }
+
+    /* LOGO */
+
+    .logo{
+
+      display:flex;
+      align-items:center;
+      gap:12px;
+
+      text-decoration:none;
+
+      color:#00d9ff;
+
+      font-size:30px;
+      font-weight:bold;
+    }
+
+    .logo img{
+
+      width:60px;
+      height:60px;
+
+      border-radius:50%;
+
+      object-fit:cover;
+
+      border:2px solid white;
+    }
+
+    /* NAV LINKS */
+
+    .nav-links{
+
+      display:flex;
+      list-style:none;
+
+      gap:25px;
+    }
+
+    .nav-links a{
+
+      text-decoration:none;
+
+      color:white;
+
+      font-size:18px;
+
+      transition:0.3s;
+    }
+
+    .nav-links a:hover{
+
+      color:#00d9ff;
+    }
+
+    /* MAIN SECTION */
+
+    .section{
+
+      min-height:85vh;
+
+      display:flex;
+      justify-content:center;
+      align-items:center;
+      flex-direction:column;
+
+      text-align:center;
+
+      padding:20px;
+    }
+
+    .page-header h2{
+
+      font-size:70px;
+
+      margin-bottom:15px;
+
+      text-shadow:3px 3px 10px black;
+    }
+
+    .page-header p{
+
+      font-size:24px;
+
+      margin-bottom:40px;
+
+      text-shadow:2px 2px 8px black;
+    }
+
+    /* FORM BOX */
+
+    .form-box{
+
+      background:rgba(0,0,0,0.75);
+
+      padding:35px;
+
+      border-radius:15px;
+
+      width:100%;
+      max-width:500px;
+
+      backdrop-filter:blur(5px);
+    }
+
+    form{
+
+      display:flex;
+      flex-direction:column;
+    }
+
+    label{
+
+      text-align:left;
+
+      margin-top:15px;
+      margin-bottom:5px;
+    }
+
+    input,
+    textarea{
+
+      padding:12px;
+
+      border:none;
+
+      border-radius:8px;
+
+      font-size:16px;
+
+      outline:none;
+    }
+
+    textarea{
+
+      resize:none;
+    }
+
+    /* BUTTON */
+
+    .btn{
+
+      margin-top:25px;
+
+      padding:14px;
+
+      border:none;
+
+      border-radius:10px;
+
+      background:#00d9ff;
+
+      color:black;
+
+      font-size:18px;
+      font-weight:bold;
+
+      cursor:pointer;
+
+      transition:0.3s;
+    }
+
+    .btn:hover{
+
+      background:white;
+
+      transform:scale(1.03);
+    }
+
+    /* FOOTER */
+
+    footer{
+
+      text-align:center;
+
+      padding:20px;
+
+      background:rgba(0,0,0,0.8);
+    }
+
+    /* MOBILE */
+
+    @media(max-width:768px){
+
+      .navbar{
+
+        flex-direction:column;
+
+        gap:20px;
+      }
+
+      .nav-links{
+
+        flex-wrap:wrap;
+
+        justify-content:center;
+      }
+
+      .page-header h2{
+
+        font-size:45px;
+      }
+
+      .page-header p{
+
+        font-size:18px;
+      }
+
+    }
+
+  </style>
+
+</head>
+
+<body>
+
+  <!-- HEADER -->
+
+  <header>
+
+    <nav class="navbar">
+
+      <!-- LOGO -->
+
+      <a href="index.html" class="logo">
+
+        <img src="anime logo.png" alt="AniTrack Logo">
+
+        AniTrack
+
+      </a>
+
+      <!-- NAVIGATION -->
+
+      <ul class="nav-links">
+
+        <li><a href="index.html">Home</a></li>
+
+        <li><a href="dashboard.html">My Library</a></li>
+
+        <li><a href="recommendations.html">Recommendations</a></li>
+
+        <li><a href="about.html">About</a></li>
+
+        <li><a href="login.html">Login</a></li>
+
+        <li><a href="register.html">Register</a></li>
+
+      </ul>
+
+    </nav>
+
+  </header>
+
+  <!-- MAIN CONTENT -->
+
+  <section class="section">
+
+    <div class="page-header">
+
+      <h2>Welcome to AniTrack</h2>
+
+      <p>
+        Track your favorite anime and manga in one place.
+      </p>
+
+    </div>
+
+    <!-- FORM -->
+
+    <div class="form-box">
+
+      <form>
+
+        <label>Name</label>
+
+        <input type="text" placeholder="Enter your name">
+
+        <label>Email</label>
+
+        <input type="email" placeholder="Enter your email">
+
+        <label>Message</label>
+
+        <textarea rows="6" placeholder="Write your message"></textarea>
+
+        <button type="submit" class="btn">
+
+          Send Message
+
+        </button>
+
+      </form>
+
+    </div>
+
+  </section>
+
+  <!-- FOOTER -->
+
+  <footer>
+
+    © 2026 AniTrack | Anime & Manga Tracker
+
+  </footer>
+
+</body>
+
+</html>
