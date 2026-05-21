@@ -62,11 +62,14 @@
       <div style="margin-bottom:16px"><a href="works.html" style="color:var(--muted);font-size:14px">&larr; All Works</a></div>
       <div class="work-detail">
         <div class="work-detail-sidebar">
-          <div class="work-placeholder work-placeholder-lg" style="background:linear-gradient(135deg,${color}cc 0%,${color}44 100%)">
-            <span class="wp-type">${work.type === 'anime' ? 'ANIME' : 'MANGA'}</span>
-            <span class="wp-title" style="font-size:22px">${escHtml(work.title)}</span>
-            <span class="wp-jp">${escHtml(work.titleJp)}</span>
-          </div>
+          ${work.imageUrl
+            ? `<img src="${escHtml(work.imageUrl)}" alt="${escHtml(work.title)}" class="work-cover-img">`
+            : `<div class="work-placeholder work-placeholder-lg" style="background:linear-gradient(135deg,${color}cc 0%,${color}44 100%)">
+                <span class="wp-type">${work.type === 'anime' ? 'ANIME' : 'MANGA'}</span>
+                <span class="wp-title" style="font-size:22px">${escHtml(work.title)}</span>
+                <span class="wp-jp">${escHtml(work.titleJp)}</span>
+               </div>`
+          }
         </div>
         <div class="work-detail-info">
           <div>
@@ -95,6 +98,16 @@
               : `<a href="login.html" class="btn btn-muted">Log in to Write a Review</a>`
             }
           </div>
+
+          ${(work.streamUrl || work.buyUrl) ? `
+          <div class="external-links">
+            <h4 style="color:var(--muted);font-size:13px;font-weight:700;letter-spacing:.05em;text-transform:uppercase;margin-bottom:10px">Where to Watch / Buy</h4>
+            <div style="display:flex;gap:10px;flex-wrap:wrap">
+              ${work.streamUrl ? `<a href="${escHtml(work.streamUrl)}" target="_blank" rel="noopener noreferrer" class="btn btn-stream">&#9654; Watch Now</a>` : ''}
+              ${work.buyUrl ? `<a href="${escHtml(work.buyUrl)}" target="_blank" rel="noopener noreferrer" class="btn btn-buy">&#128722; Buy</a>` : ''}
+            </div>
+          </div>` : ''}
+
 
           ${reviews.length ? `<h3 style="color:var(--accent);font-weight:800;margin-bottom:4px">Recent Reviews</h3>
             <div class="review-list">${recentRevHtml}</div>` : ''}

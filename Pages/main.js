@@ -20,42 +20,50 @@ const SEED_WORKS = [
   {
     id: 1, title: 'Demon Slayer', titleJp: '鬼滅の刃',
     type: 'anime', genre: 'Action', year: 2019, episodes: 44, chapters: null, status: 'Completed',
-    synopsis: 'After his family is slaughtered and his sister turned into a demon, Tanjiro Kamado joins the Demon Slayer Corps to avenge his family and find a cure for his sister Nezuko.'
+    synopsis: 'After his family is slaughtered and his sister turned into a demon, Tanjiro Kamado joins the Demon Slayer Corps to avenge his family and find a cure for his sister Nezuko.',
+    streamUrl: 'https://www.crunchyroll.com', buyUrl: null, imageUrl: null
   },
   {
     id: 2, title: 'Attack on Titan', titleJp: '進撃の巨人',
     type: 'anime', genre: 'Action', year: 2013, episodes: 87, chapters: null, status: 'Completed',
-    synopsis: 'In a world where humanity lives behind giant walls to protect themselves from Titans, young Eren Yeager vows to exterminate all Titans after his mother is devoured by one.'
+    synopsis: 'In a world where humanity lives behind giant walls to protect themselves from Titans, young Eren Yeager vows to exterminate all Titans after his mother is devoured by one.',
+    streamUrl: 'https://www.crunchyroll.com', buyUrl: null, imageUrl: null
   },
   {
     id: 3, title: 'Jujutsu Kaisen', titleJp: '呪術廻戦',
     type: 'anime', genre: 'Action', year: 2020, episodes: 48, chapters: null, status: 'Completed',
-    synopsis: 'Yuji Itadori swallows a cursed object to save his classmates and becomes the host of a powerful Curse named Ryomen Sukuna, forcing him into the world of Jujutsu sorcerers.'
+    synopsis: 'Yuji Itadori swallows a cursed object to save his classmates and becomes the host of a powerful Curse named Ryomen Sukuna, forcing him into the world of Jujutsu sorcerers.',
+    streamUrl: 'https://www.crunchyroll.com', buyUrl: null, imageUrl: null
   },
   {
     id: 4, title: 'Vinland Saga', titleJp: 'ヴィンランド・サガ',
     type: 'anime', genre: 'Historical', year: 2019, episodes: 48, chapters: null, status: 'Completed',
-    synopsis: 'Young Thorfinn grows up in a time of war between England and Denmark. After his father is killed by the mercenary Askeladd, he vows to defeat him in a duel.'
+    synopsis: 'Young Thorfinn grows up in a time of war between England and Denmark. After his father is killed by the mercenary Askeladd, he vows to defeat him in a duel.',
+    streamUrl: 'https://www.netflix.com', buyUrl: null, imageUrl: null
   },
   {
     id: 5, title: 'One Piece', titleJp: 'ワンピース',
     type: 'manga', genre: 'Adventure', year: 1997, episodes: null, chapters: 1117, status: 'Ongoing',
-    synopsis: 'Monkey D. Luffy, a boy who gained the properties of rubber after eating a Devil Fruit, sets sail with his crew to find the legendary treasure One Piece and become King of the Pirates.'
+    synopsis: 'Monkey D. Luffy, a boy who gained the properties of rubber after eating a Devil Fruit, sets sail with his crew to find the legendary treasure One Piece and become King of the Pirates.',
+    streamUrl: null, buyUrl: 'https://www.amazon.co.jp', imageUrl: null
   },
   {
     id: 6, title: 'Berserk', titleJp: 'ベルセルク',
     type: 'manga', genre: 'Dark Fantasy', year: 1989, episodes: null, chapters: 374, status: 'Ongoing',
-    synopsis: "Guts, a former mercenary, travels the dark medieval world as a lone swordsman haunted by a Brand of Sacrifice, seeking revenge against the man who betrayed him."
+    synopsis: "Guts, a former mercenary, travels the dark medieval world as a lone swordsman haunted by a Brand of Sacrifice, seeking revenge against the man who betrayed him.",
+    streamUrl: null, buyUrl: 'https://www.amazon.co.jp', imageUrl: null
   },
   {
     id: 7, title: 'Blue Period', titleJp: 'ブルーピリオド',
     type: 'manga', genre: 'Slice of Life', year: 2017, episodes: null, chapters: 84, status: 'Ongoing',
-    synopsis: 'Yatora Yaguchi, a straight-A student, discovers the magic of painting and decides to pursue the prestigious Tokyo University of the Arts despite having no experience.'
+    synopsis: 'Yatora Yaguchi, a straight-A student, discovers the magic of painting and decides to pursue the prestigious Tokyo University of the Arts despite having no experience.',
+    streamUrl: null, buyUrl: 'https://www.amazon.co.jp', imageUrl: null
   },
   {
     id: 8, title: 'Chainsaw Man', titleJp: 'チェンソーマン',
     type: 'manga', genre: 'Action', year: 2018, episodes: null, chapters: 194, status: 'Ongoing',
-    synopsis: 'Denji is a young man burdened with debt who kills devils to pay it off. After merging with his devil-dog Pochita, he gains the power to transform into the Chainsaw Man.'
+    synopsis: 'Denji is a young man burdened with debt who kills devils to pay it off. After merging with his devil-dog Pochita, he gains the power to transform into the Chainsaw Man.',
+    streamUrl: null, buyUrl: 'https://www.amazon.co.jp', imageUrl: null
   }
 ];
 
@@ -74,12 +82,23 @@ const SEED_REVIEWS = [
 ];
 
 // ─── Storage ──────────────────────────────────────────────────────────────────
+const WORKS_VER = 3;
+
 function getWorks() {
   const raw = localStorage.getItem('at_works');
-  if (!raw) { localStorage.setItem('at_works', JSON.stringify(SEED_WORKS)); return JSON.parse(JSON.stringify(SEED_WORKS)); }
+  const ver = Number(localStorage.getItem('at_works_ver') || 0);
+  if (!raw || ver < WORKS_VER) {
+    const fresh = JSON.parse(JSON.stringify(SEED_WORKS));
+    localStorage.setItem('at_works', JSON.stringify(fresh));
+    localStorage.setItem('at_works_ver', String(WORKS_VER));
+    return fresh;
+  }
   return JSON.parse(raw);
 }
-function saveWorks(d) { localStorage.setItem('at_works', JSON.stringify(d)); }
+function saveWorks(d) {
+  localStorage.setItem('at_works', JSON.stringify(d));
+  localStorage.setItem('at_works_ver', String(WORKS_VER));
+}
 
 function getUsers() {
   const raw = localStorage.getItem('at_users');
@@ -129,7 +148,7 @@ function doRegister(username, email, password) {
 
 function requireAuth() {
   const u = getCurrentUser();
-  if (!u) { window.location.href = 'login.html'; return null; }
+  if (!u) { window.location.href = 'login.html?from=' + encodeURIComponent(window.location.href); return null; }
   return u;
 }
 

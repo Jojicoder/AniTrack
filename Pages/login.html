@@ -63,5 +63,28 @@
   <p>&copy; 2026 AniTrack | Anime &amp; Manga Tracker</p>
 </footer>
 
+<script src="main.js"></script>
+<script>
+  const from = new URLSearchParams(location.search).get('from') || 'index.html';
+  if (getCurrentUser()) window.location.href = from;
+
+  document.querySelector('form').addEventListener('submit', function(e) {
+    e.preventDefault();
+    const email    = document.getElementById('email').value.trim();
+    const password = document.getElementById('password').value;
+    const result   = doLogin(email, password);
+    if (result.ok) {
+      window.location.href = from;
+    } else {
+      let msg = document.getElementById('login-msg');
+      if (!msg) {
+        msg = document.createElement('div');
+        msg.id = 'login-msg';
+        document.querySelector('.form-box').prepend(msg);
+      }
+      showAlert(msg, 'error', result.msg);
+    }
+  });
+</script>
 </body>
 </html>

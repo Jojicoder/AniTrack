@@ -22,6 +22,15 @@
 
   <div class="form-box">
     <div id="msg"></div>
+
+    <div style="margin-bottom:24px;padding-bottom:24px;border-bottom:1px solid rgba(255,255,255,0.07)">
+      <label style="display:block;margin-bottom:6px">Search MyAnimeList <span style="font-weight:400;color:var(--muted)">(optional — auto-fills the form below)</span></label>
+      <div style="position:relative">
+        <input type="text" id="api-search" placeholder="Type a title to search...">
+        <div id="api-results" class="api-results" style="display:none"></div>
+      </div>
+    </div>
+
     <form id="add-form">
       <label>Title (English)</label>
       <input type="text" id="title" placeholder="e.g. Attack on Titan" required>
@@ -79,6 +88,18 @@
       <label>Synopsis</label>
       <textarea id="synopsis" rows="5" placeholder="Enter a brief synopsis..." required></textarea>
 
+      <label>Stream URL <span style="font-weight:400;color:var(--muted)">(optional — e.g. Crunchyroll, Netflix)</span></label>
+      <input type="url" id="stream-url" placeholder="https://www.crunchyroll.com/...">
+
+      <label>Buy URL <span style="font-weight:400;color:var(--muted)">(optional — e.g. Amazon, BookWalker)</span></label>
+      <input type="url" id="buy-url" placeholder="https://www.amazon.co.jp/...">
+
+      <label>Cover Image URL <span style="font-weight:400;color:var(--muted)">(auto-filled from search)</span></label>
+      <input type="url" id="image-url" placeholder="https://...">
+      <div id="image-preview" style="display:none;margin-top:8px">
+        <img id="image-preview-img" src="" alt="Cover preview" style="width:100px;border-radius:8px;object-fit:cover">
+      </div>
+
       <button type="submit" class="btn">Add Work</button>
     </form>
   </div>
@@ -112,6 +133,8 @@
       const chapters = type === 'manga' ? (Number(document.getElementById('chapters').value) || null) : null;
       const status = document.getElementById('status').value;
       const synopsis = document.getElementById('synopsis').value.trim();
+      const streamUrl = document.getElementById('stream-url').value.trim() || null;
+      const buyUrl = document.getElementById('buy-url').value.trim() || null;
 
       if (!title || !titleJp || !type || !genre || !year || !status || !synopsis) {
         showAlert(msgEl, 'error', 'Please fill in all required fields');
@@ -124,12 +147,124 @@
         return;
       }
 
-      works.push({ id: Date.now(), title, titleJp, type, genre, year, episodes, chapters, status, synopsis });
+      const imageUrl = document.getElementById('image-url').value.trim() || null;
+
+      works.push({ id: Date.now(), title, titleJp, type, genre, year, episodes, chapters, status, synopsis, streamUrl, buyUrl, imageUrl });
       saveWorks(works);
       showAlert(msgEl, 'success', `"${title}" has been added!`);
       document.getElementById('add-form').reset();
+      document.getElementById('image-preview').style.display = 'none';
       document.getElementById('eps-field').style.display = 'grid';
       document.getElementById('ch-field').style.display = 'none';
+    });
+
+    // ── Image preview when URL is typed manually ──────────────────────────────
+    document.getElementById('image-url').addEventListener('input', function() {
+      const url = this.value.trim();
+      const preview = document.getElementById('image-preview');
+      const img = document.getElementById('image-preview-img');
+      if (url) { img.src = url; preview.style.display = 'block'; }
+      else { preview.style.display = 'none'; }
+    });
+
+    // ── Jikan API search ──────────────────────────────────────────────────────
+    const GENRE_MAP = {
+      'Action':'Action','Adventure':'Adventure','Romance':'Romance','Fantasy':'Fantasy',
+      'Comedy':'Comedy','Horror':'Horror','Slice of Life':'Slice of Life',
+      'Historical':'Historical','Drama':'Drama','Sci-Fi':'Sci-Fi',
+      'Sports':'Sports','Mystery':'Mystery','Supernatural':'Fantasy','Thriller':'Mystery'
+    };
+    const STATUS_MAP = {
+      'Finished Airing':'Completed','Currently Airing':'Airing','Not yet aired':'Upcoming',
+      'Finished':'Completed','Publishing':'Ongoing','On Hiatus':'Hiatus','Discontinued':'Completed'
+    };
+
+    let searchTimer;
+    const searchInput = document.getElementById('api-search');
+    const resultsBox  = document.getElementById('api-results');
+
+    searchInput.addEventListener('input', function() {
+      clearTimeout(searchTimer);
+      const q = this.value.trim();
+      if (q.length < 2) { resultsBox.style.display = 'none'; return; }
+      searchTimer = setTimeout(() => fetchJikan(q), 500);
+    });
+
+    async function fetchJikan(q) {
+      resultsBox.innerHTML = '<div class="api-result-loading">Searching...</div>';
+      resultsBox.style.display = 'block';
+      try {
+        const selectedType = document.getElementById('type').value;
+        const urls = selectedType === 'manga'
+          ? [`https://api.jikan.moe/v4/manga?q=${encodeURIComponent(q)}&limit=6`]
+          : selectedType === 'anime'
+          ? [`https://api.jikan.moe/v4/anime?q=${encodeURIComponent(q)}&limit=6`]
+          : [
+              `https://api.jikan.moe/v4/anime?q=${encodeURIComponent(q)}&limit=4`,
+              `https://api.jikan.moe/v4/manga?q=${encodeURIComponent(q)}&limit=4`
+            ];
+
+        const responses = await Promise.all(urls.map(u => fetch(u).then(r => r.json())));
+        const results = responses.flatMap((res, i) =>
+          (res.data || []).map(item => ({ ...item, _kind: urls.length > 1 ? (i === 0 ? 'anime' : 'manga') : selectedType }))
+        );
+
+        if (!results.length) {
+          resultsBox.innerHTML = '<div class="api-result-loading">No results found.</div>';
+          return;
+        }
+
+        window._jikanResults = results;
+        resultsBox.innerHTML = results.map((item, idx) => `
+          <div class="api-result-item" data-idx="${idx}">
+            <img src="${item.images?.jpg?.image_url || ''}" alt="" onerror="this.style.display='none'">
+            <div>
+              <div class="api-result-title">${escHtml(item.title_english || item.title)}</div>
+              <div class="api-result-meta">${item._kind.toUpperCase()} &middot; ${item.year || item.aired?.prop?.from?.year || item.published?.prop?.from?.year || '?'}</div>
+            </div>
+          </div>`).join('');
+
+        resultsBox.querySelectorAll('.api-result-item').forEach(el => {
+          el.addEventListener('click', () => fillForm(window._jikanResults[Number(el.dataset.idx)]));
+        });
+      } catch {
+        resultsBox.innerHTML = '<div class="api-result-loading">Search failed. Check your connection.</div>';
+      }
+    }
+
+    function fillForm(item) {
+      resultsBox.style.display = 'none';
+      searchInput.value = '';
+
+      document.getElementById('title').value    = item.title_english || item.title || '';
+      document.getElementById('title-jp').value = item.title_japanese || '';
+      document.getElementById('type').value     = item._kind;
+      document.getElementById('type').dispatchEvent(new Event('change'));
+
+      const genreMatch = (item.genres || []).map(g => g.name).find(n => GENRE_MAP[n]);
+      if (genreMatch) document.getElementById('genre').value = GENRE_MAP[genreMatch];
+
+      const year = item.year || item.aired?.prop?.from?.year || item.published?.prop?.from?.year;
+      if (year) document.getElementById('year').value = year;
+
+      if (item._kind === 'anime' && item.episodes) document.getElementById('episodes').value = item.episodes;
+      if (item._kind === 'manga' && item.chapters)  document.getElementById('chapters').value  = item.chapters;
+
+      if (item.status && STATUS_MAP[item.status]) document.getElementById('status').value = STATUS_MAP[item.status];
+      if (item.synopsis) document.getElementById('synopsis').value = item.synopsis;
+
+      const imgUrl = item.images?.jpg?.large_image_url || item.images?.jpg?.image_url || '';
+      document.getElementById('image-url').value = imgUrl;
+      if (imgUrl) {
+        document.getElementById('image-preview-img').src = imgUrl;
+        document.getElementById('image-preview').style.display = 'block';
+      }
+    }
+
+    document.addEventListener('click', function(e) {
+      if (!e.target.closest('#api-search') && !e.target.closest('#api-results')) {
+        resultsBox.style.display = 'none';
+      }
     });
   }
 </script>
