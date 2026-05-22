@@ -624,6 +624,30 @@ function showAlert(el, type, msg) {
 }
 
 // ─── Nav ─────────────────────────────────────────────────────────────────────
+function setupDropdowns() {
+  document.querySelectorAll('.has-dropdown > a').forEach((trigger) => {
+    trigger.addEventListener('click', (e) => {
+      const li = trigger.parentElement;
+      const isOpen = li.classList.contains('open');
+
+      document.querySelectorAll('.has-dropdown').forEach((el) => {
+        if (el !== li) el.classList.remove('open');
+      });
+
+      if (!isOpen) {
+        e.preventDefault();
+        li.classList.add('open');
+      }
+    });
+  });
+
+  document.addEventListener('click', (e) => {
+    if (!e.target.closest('.has-dropdown')) {
+      document.querySelectorAll('.has-dropdown').forEach((el) => el.classList.remove('open'));
+    }
+  });
+}
+
 function initNav(active) {
   const u = getCurrentUser();
   const cls = (page) => active === page ? ' class="active"' : '';
@@ -670,4 +694,6 @@ function initNav(active) {
         ${authLinks}
       </ul>
     </nav>`;
+
+  setupDropdowns();
 }
