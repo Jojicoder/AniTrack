@@ -1,0 +1,222 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Profile - AniTrack</title>
+  <link rel="stylesheet" href="../assets/css/style.css">
+  <style>
+    .avatar-wrap {
+      position: relative;
+      width: 72px;
+      height: 72px;
+      cursor: pointer;
+      flex-shrink: 0;
+    }
+    .avatar-wrap .profile-avatar,
+    .avatar-wrap img.profile-avatar {
+      width: 72px;
+      height: 72px;
+    }
+    .avatar-overlay {
+      position: absolute;
+      inset: 0;
+      border-radius: 50%;
+      background: rgba(0, 0, 0, 0.55);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      opacity: 0;
+      transition: opacity 150ms;
+      font-size: 11px;
+      font-weight: 800;
+      color: #fff;
+      text-align: center;
+      pointer-events: none;
+    }
+    .avatar-wrap:hover .avatar-overlay { opacity: 1; }
+  </style>
+</head>
+<body>
+
+<header></header>
+
+<section class="section">
+  <div id="content"></div>
+</section>
+
+<footer>
+  <p>&copy; 2026 AniTrack | Anime &amp; Manga Tracker</p>
+</footer>
+
+<input type="file" id="avatar-input" accept="image/*" style="display:none">
+
+<script src="../assets/js/main.js"></script>
+<script>
+  initNav('profile');
+
+  const session = requireAuth();
+  if (!session) throw new Error('not logged in');
+
+  const content = document.getElementById('content');
+  const fileInput = document.getElementById('avatar-input');
+
+  function stars(score) {
+    if (!score) return '<span style="color:var(--muted);font-size:13px">Not rated yet</span>';
+    return `<span class="stars">${'★'.repeat(score)}${'☆'.repeat(10 - score)}</span>
+      <span style="color:var(--muted);font-size:13px">${score} / 10</span>`;
+  }
+
+  function entryMarkup(entry) {
+    const work = getWorkById(entry.workId);
+    if (!work) return '';
+    return `<div class="entry-card">
+      ${work.imageUrl
+        ? `<img class="entry-thumb" src="${escHtml(work.imageUrl)}" alt="${escHtml(work.title)} cover">`
+        : `<div class="entry-thumb-placeholder">${work.type.toUpperCase()}</div>`
+      }
+      <div class="entry-info">
+        <h3>${escHtml(work.title)}</h3>
+        <p>
+          <span class="tag ${work.type === 'anime' ? 'tag-anime' : 'tag-manga'}" style="font-size:11px">${work.type === 'anime' ? 'Anime' : 'Manga'}</span>
+          &nbsp;
+          <span class="tag" style="font-size:11px">${escHtml(work.genre)}</span>
+        </p>
+        <p>Status: <strong>${escHtml(entry.status)}</strong></p>
+        <p>Rating: ${stars(entry.rating)}</p>
+        ${entry.note ? `<p style="font-size:13px;font-style:italic;color:var(--muted)">"${escHtml(entry.note)}"</p>` : ''}
+        <div class="entry-actions">
+          <a href="works-detail.html?id=${work.id}" class="btn btn-sm btn-outline">View Work</a>
+        </div>
+      </div>
+    </div>`;
+  }
+
+  function reviewMarkup(review) {
+    const work = getWorkById(review.workId);
+    return `<div class="review-card">
+      <div class="review-header">
+        <a href="works-detail.html?id=${review.workId}" style="font-weight:800;color:var(--text)">${escHtml(work ? work.title : '?')}</a>
+        <span class="tag ${work && work.type === 'anime' ? 'tag-anime' : 'tag-manga'}" style="font-size:11px">${work ? escHtml(work.type) : '?'}</span>
+        ${ratingBadge(review.rating)}
+        <span class="review-date">${escHtml(review.createdAt)}</span>
+      </div>
+      <p class="review-text">${escHtml(review.text)}</p>
+      <p class="review-status">Status: ${escHtml(review.userStatus)}</p>
+    </div>`;
+  }
+
+  function avatarWrap(fullUser) {
+    const inner = fullUser.avatarUrl
+      ? `<img class="profile-avatar avatar-img" src="${escHtml(fullUser.avatarUrl)}" alt="${escHtml(fullUser.username)} avatar">`
+      : `<div class="profile-avatar">${escHtml(fullUser.username.charAt(0).toUpperCase())}</div>`;
+    return `<div class="avatar-wrap" id="avatar-wrap" title="Change photo">
+      ${inner}
+      <div class="avatar-overlay">Change<br>Photo</div>
+    </div>`;
+  }
+
+  function render() {
+    const fullUser = getUserById(session.id);
+    if (!fullUser) {
+      content.innerHTML = '<div class="empty-state"><p>User not found.</p></div>';
+      return;
+    }
+
+    document.title = `${fullUser.username} - AniTrack`;
+
+    const entries = getLibrary()
+      .filter(e => e.userId === fullUser.id)
+      .sort((a, b) => (b.updatedAt || b.createdAt || '').localeCompare(a.updatedAt || a.createdAt || ''));
+    const reviews = getReviewsByUser(fullUser.id).slice().reverse();
+    const friendCount = getFriendsByUser(fullUser.id).length;
+    const animeCount = entries.filter(e => { const w = getWorkById(e.workId); return w && w.type === 'anime'; }).length;
+    const mangaCount = entries.filter(e => { const w = getWorkById(e.workId); return w && w.type === 'manga'; }).length;
+
+    content.innerHTML = `
+      <div class="profile-header">
+        ${avatarWrap(fullUser)}
+        <div class="profile-info">
+          <h3>${escHtml(fullUser.username)}
+            ${fullUser.role === 'admin' ? '<span class="badge badge-admin" style="margin-left:8px">Admin</span>' : ''}
+          </h3>
+          <p>Joined: ${escHtml(fullUser.createdAt)}</p>
+          <p style="margin-top:4px">
+            <a href="user-profile.html?user_id=${fullUser.id}" style="color:var(--accent);font-size:13px">View public profile</a>
+          </p>
+        </div>
+      </div>
+
+      <div style="background:var(--panel);border:1px solid var(--border);border-radius:10px;padding:20px;margin-bottom:28px">
+        <label style="display:block;font-size:13px;font-weight:800;color:var(--muted);letter-spacing:1px;text-transform:uppercase;margin-bottom:8px">Bio</label>
+        <textarea id="bio-input" maxlength="300" placeholder="Write something about yourself..." style="min-height:80px;resize:vertical;font-size:14px">${escHtml(fullUser.bio || '')}</textarea>
+        <div style="display:flex;justify-content:flex-end;gap:8px;margin-top:8px">
+          <span id="bio-msg" style="color:var(--accent);font-size:13px;align-self:center"></span>
+          <button id="bio-save" class="btn btn-sm">Save</button>
+        </div>
+      </div>
+
+      <div class="stats-grid">
+        <div class="stat-card"><div class="stat-num">${entries.length}</div><div class="stat-label">Library Entries</div></div>
+        <div class="stat-card"><div class="stat-num">${animeCount}</div><div class="stat-label">Anime</div></div>
+        <div class="stat-card"><div class="stat-num">${mangaCount}</div><div class="stat-label">Manga</div></div>
+        <div class="stat-card"><div class="stat-num">${reviews.length}</div><div class="stat-label">Reviews</div></div>
+        <div class="stat-card"><div class="stat-num">${friendCount}</div><div class="stat-label">Friends</div></div>
+      </div>
+
+      <h3 style="color:var(--accent);font-size:20px;font-weight:800;margin-bottom:14px">My Library</h3>
+      <div class="entry-list">
+        ${entries.length
+          ? entries.map(entryMarkup).join('')
+          : '<div class="empty-state"><p>No library entries yet. <a href="works.html" class="btn btn-sm" style="display:inline-block;margin-top:8px">Browse Works</a></p></div>'}
+      </div>
+
+      <div style="margin-top:40px">
+        <h3 style="color:var(--accent);font-size:20px;font-weight:800;margin-bottom:14px">My Reviews</h3>
+        <div class="review-list">
+          ${reviews.length
+            ? reviews.map(reviewMarkup).join('')
+            : '<div class="empty-state"><p>No reviews yet.</p></div>'}
+        </div>
+      </div>`;
+
+    document.getElementById('avatar-wrap').addEventListener('click', () => fileInput.click());
+
+    document.getElementById('bio-save').addEventListener('click', () => {
+      const bio = document.getElementById('bio-input').value.trim();
+      updateUser(session.id, { bio });
+      const msg = document.getElementById('bio-msg');
+      msg.textContent = 'Saved!';
+      setTimeout(() => { msg.textContent = ''; }, 2000);
+    });
+  }
+
+  fileInput.addEventListener('change', () => {
+    const file = fileInput.files[0];
+    if (!file) return;
+    if (file.size > 10 * 1024 * 1024) {
+      alert('Image must be under 10 MB.');
+      fileInput.value = '';
+      return;
+    }
+    const reader = new FileReader();
+    reader.onload = (e) => {
+      compressImage(e.target.result, (compressed) => {
+        try {
+          updateUser(session.id, { avatarUrl: compressed });
+        } catch (err) {
+          alert('Failed to save image. Try a smaller file.');
+          return;
+        }
+        render();
+        initNav('profile');
+      });
+    };
+    reader.readAsDataURL(file);
+    fileInput.value = '';
+  });
+
+  render();
+</script>
+</body>
+</html>

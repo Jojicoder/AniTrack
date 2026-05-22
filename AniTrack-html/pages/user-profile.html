@@ -1,0 +1,155 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>User Profile - AniTrack</title>
+  <link rel="stylesheet" href="../assets/css/style.css">
+</head>
+<body>
+
+<header></header>
+
+<section class="section">
+  <div id="content"></div>
+</section>
+
+<footer>
+  <p>&copy; 2026 AniTrack | Anime &amp; Manga Tracker</p>
+</footer>
+
+<script src="../assets/js/main.js"></script>
+<script>
+  initNav('');
+
+  const viewer = getCurrentUser();
+  const profileUserId = Number(getQueryParam('user_id') || getQueryParam('id'));
+  const profileUser = getUserById(profileUserId);
+  const content = document.getElementById('content');
+
+  function stars(score) {
+    if (!score) return '<span style="color:var(--muted);font-size:13px">Not rated yet</span>';
+    return `<span class="stars">${'★'.repeat(score)}${'☆'.repeat(10 - score)}</span>
+      <span style="color:var(--muted);font-size:13px">${score} / 10</span>`;
+  }
+
+  function entryMarkup(entry) {
+    const work = getWorkById(entry.workId);
+    if (!work) return '';
+    return `<div class="entry-card">
+      ${work.imageUrl
+        ? `<img class="entry-thumb" src="${escHtml(work.imageUrl)}" alt="${escHtml(work.title)} cover">`
+        : `<div class="entry-thumb-placeholder">${work.type.toUpperCase()}</div>`
+      }
+      <div class="entry-info">
+        <h3>${escHtml(work.title)}</h3>
+        <p>
+          <span class="tag ${work.type === 'anime' ? 'tag-anime' : 'tag-manga'}" style="font-size:11px">${work.type === 'anime' ? 'Anime' : 'Manga'}</span>
+          &nbsp;
+          <span class="tag" style="font-size:11px">${escHtml(work.genre)}</span>
+        </p>
+        <p>Status: <strong>${escHtml(entry.status)}</strong></p>
+        <p>Rating: ${stars(entry.rating)}</p>
+        ${entry.note ? `<p style="font-size:13px;font-style:italic;color:var(--muted)">"${escHtml(entry.note)}"</p>` : ''}
+        <div class="entry-actions">
+          <a href="works-detail.html?id=${work.id}" class="btn btn-sm btn-outline">View Work</a>
+        </div>
+      </div>
+    </div>`;
+  }
+
+  function reviewMarkup(review) {
+    const work = getWorkById(review.workId);
+    return `<div class="review-card">
+      <div class="review-header">
+        <a href="works-detail.html?id=${review.workId}" style="font-weight:800;color:var(--text)">${escHtml(work ? work.title : '?')}</a>
+        <span class="tag ${work && work.type === 'anime' ? 'tag-anime' : 'tag-manga'}" style="font-size:11px">${work ? escHtml(work.type) : '?'}</span>
+        ${ratingBadge(review.rating)}
+        <span class="review-date">${escHtml(review.createdAt)}</span>
+      </div>
+      <p class="review-text">${escHtml(review.text)}</p>
+      <p class="review-status">Status: ${escHtml(review.userStatus)}</p>
+    </div>`;
+  }
+
+  function friendButton() {
+    if (!viewer || viewer.id === profileUser.id) return '';
+    if (isFriend(viewer.id, profileUser.id)) {
+      return `<button type="button" class="btn btn-muted" id="friend-toggle">Friend</button>`;
+    }
+    return `<button type="button" class="btn" id="friend-toggle">Add Friend</button>`;
+  }
+
+  function render() {
+    if (!profileUser) {
+      content.innerHTML = '<div class="empty-state"><p>User not found.</p><a href="dashboard.html" class="btn">Back to Dashboard</a></div>';
+      return;
+    }
+
+    document.title = `${profileUser.username} - AniTrack`;
+
+    const entries = getLibrary()
+      .filter(entry => entry.userId === profileUser.id)
+      .sort((a, b) => (b.updatedAt || b.createdAt || '').localeCompare(a.updatedAt || a.createdAt || ''));
+    const reviews = getReviewsByUser(profileUser.id).slice().reverse();
+    const friendCount = getFriendsByUser(profileUser.id).length;
+    const animeCount = entries.filter(entry => {
+      const work = getWorkById(entry.workId);
+      return work && work.type === 'anime';
+    }).length;
+    const mangaCount = entries.filter(entry => {
+      const work = getWorkById(entry.workId);
+      return work && work.type === 'manga';
+    }).length;
+
+    content.innerHTML = `
+      <div style="margin-bottom:16px">
+        <a href="dashboard.html" style="color:var(--muted);font-size:14px">&larr; Back to Dashboard</a>
+      </div>
+
+      <div class="profile-header">
+        ${avatarHtml(profileUser, 'profile-avatar')}
+        <div class="profile-info">
+          <h3>${escHtml(profileUser.username)}
+            ${profileUser.role === 'admin' ? '<span class="badge badge-admin" style="margin-left:8px">Admin</span>' : ''}
+          </h3>
+          <p>Joined: ${escHtml(profileUser.createdAt)}</p>
+          ${profileUser.bio ? `<p style="margin-top:8px;font-size:14px;color:var(--text)">${escHtml(profileUser.bio)}</p>` : ''}
+        </div>
+        <div style="margin-left:auto">${friendButton()}</div>
+      </div>
+
+      <div class="stats-grid">
+        <div class="stat-card"><div class="stat-num">${entries.length}</div><div class="stat-label">Library Entries</div></div>
+        <div class="stat-card"><div class="stat-num">${animeCount}</div><div class="stat-label">Anime</div></div>
+        <div class="stat-card"><div class="stat-num">${mangaCount}</div><div class="stat-label">Manga</div></div>
+        <div class="stat-card"><div class="stat-num">${reviews.length}</div><div class="stat-label">Reviews</div></div>
+        <div class="stat-card"><div class="stat-num">${friendCount}</div><div class="stat-label">Friends</div></div>
+      </div>
+
+      <h3 style="color:var(--accent);font-size:20px;font-weight:800;margin-bottom:14px">Library</h3>
+      <div class="entry-list">
+        ${entries.length ? entries.map(entryMarkup).join('') : '<div class="empty-state"><p>This user has no library entries yet.</p></div>'}
+      </div>
+
+      <div style="margin-top:40px">
+        <h3 style="color:var(--accent);font-size:20px;font-weight:800;margin-bottom:14px">Review History</h3>
+        <div class="review-list">
+          ${reviews.length ? reviews.map(reviewMarkup).join('') : '<div class="empty-state"><p>This user has no reviews yet.</p></div>'}
+        </div>
+      </div>`;
+
+    const toggle = document.getElementById('friend-toggle');
+    if (toggle && viewer && viewer.id !== profileUser.id) {
+      toggle.addEventListener('click', () => {
+        if (isFriend(viewer.id, profileUser.id)) removeFriend(viewer.id, profileUser.id);
+        else addFriend(viewer.id, profileUser.id);
+        render();
+      });
+    }
+  }
+
+  render();
+</script>
+</body>
+</html>

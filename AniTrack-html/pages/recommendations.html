@@ -1,0 +1,165 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Recommendations - AniTrack</title>
+  <link rel="stylesheet" href="../assets/css/style.css">
+</head>
+<body>
+
+<header></header>
+
+<section class="section">
+  <div class="page-header">
+    <h2>Recommendations</h2>
+    <p>Handpicked anime &amp; manga worth your time</p>
+  </div>
+
+  <!-- Filter -->
+  <div class="filter-area" style="justify-content:center;max-width:500px;margin:0 auto 32px">
+    <select id="type-filter" style="flex:0 0 auto">
+      <option value="">All Types</option>
+      <option value="anime">Anime Only</option>
+      <option value="manga">Manga Only</option>
+    </select>
+    <select id="genre-filter" style="flex:0 0 auto">
+      <option value="">All Genres</option>
+      <option value="Action">Action</option>
+      <option value="Adventure">Adventure</option>
+      <option value="Dark Fantasy">Dark Fantasy</option>
+      <option value="Historical">Historical</option>
+      <option value="Slice of Life">Slice of Life</option>
+      <option value="Romance">Romance</option>
+      <option value="Sci-Fi">Sci-Fi</option>
+    </select>
+  </div>
+
+  <div class="rec-grid" id="rec-grid">
+
+    <div class="rec-card" data-type="anime" data-genre="Action">
+      <div class="entry-thumb-placeholder rec-thumb" style="background:linear-gradient(135deg,#7b3ff2cc,#7b3ff244)">ANIME</div>
+      <div class="rec-info">
+        <span class="tag tag-anime" style="font-size:11px">Anime</span>
+        <h3>Demon Slayer</h3>
+        <p><span class="tag" style="font-size:11px">Action</span></p>
+        <p>Stunning animation and a heartfelt story about family and perseverance.</p>
+        <a href="add-entry.html" class="btn btn-sm" style="margin-top:10px">+ Add to Library</a>
+      </div>
+    </div>
+
+    <div class="rec-card" data-type="anime" data-genre="Action">
+      <div class="entry-thumb-placeholder rec-thumb" style="background:linear-gradient(135deg,#475569cc,#47556944)">ANIME</div>
+      <div class="rec-info">
+        <span class="tag tag-anime" style="font-size:11px">Anime</span>
+        <h3>Attack on Titan</h3>
+        <p><span class="tag" style="font-size:11px">Action</span></p>
+        <p>A complex, dark story that redefines what anime can be. Essential viewing.</p>
+        <a href="add-entry.html" class="btn btn-sm" style="margin-top:10px">+ Add to Library</a>
+      </div>
+    </div>
+
+    <div class="rec-card" data-type="anime" data-genre="Historical">
+      <div class="entry-thumb-placeholder rec-thumb" style="background:linear-gradient(135deg,#92400ecc,#92400e44)">ANIME</div>
+      <div class="rec-info">
+        <span class="tag tag-anime" style="font-size:11px">Anime</span>
+        <h3>Vinland Saga</h3>
+        <p><span class="tag" style="font-size:11px">Historical</span></p>
+        <p>A Viking epic exploring revenge, war, and the pursuit of a peaceful life.</p>
+        <a href="add-entry.html" class="btn btn-sm" style="margin-top:10px">+ Add to Library</a>
+      </div>
+    </div>
+
+    <div class="rec-card" data-type="manga" data-genre="Dark Fantasy">
+      <div class="entry-thumb-placeholder rec-thumb" style="background:linear-gradient(135deg,#6b21a8cc,#6b21a844)">MANGA</div>
+      <div class="rec-info">
+        <span class="tag tag-manga" style="font-size:11px">Manga</span>
+        <h3>Berserk</h3>
+        <p><span class="tag" style="font-size:11px">Dark Fantasy</span></p>
+        <p>Miura's magnum opus. Unmatched artwork and one of fiction's greatest protagonists.</p>
+        <a href="add-entry.html" class="btn btn-sm" style="margin-top:10px">+ Add to Library</a>
+      </div>
+    </div>
+
+    <div class="rec-card" data-type="manga" data-genre="Adventure">
+      <div class="entry-thumb-placeholder rec-thumb" style="background:linear-gradient(135deg,#1d4ed8cc,#1d4ed844)">MANGA</div>
+      <div class="rec-info">
+        <span class="tag tag-manga" style="font-size:11px">Manga</span>
+        <h3>One Piece</h3>
+        <p><span class="tag" style="font-size:11px">Adventure</span></p>
+        <p>The world's best-selling manga. Enormous world-building and unbeatable emotional highs.</p>
+        <a href="add-entry.html" class="btn btn-sm" style="margin-top:10px">+ Add to Library</a>
+      </div>
+    </div>
+
+    <div class="rec-card" data-type="manga" data-genre="Slice of Life">
+      <div class="entry-thumb-placeholder rec-thumb" style="background:linear-gradient(135deg,#0891b2cc,#0891b244)">MANGA</div>
+      <div class="rec-info">
+        <span class="tag tag-manga" style="font-size:11px">Manga</span>
+        <h3>Blue Period</h3>
+        <p><span class="tag" style="font-size:11px">Slice of Life</span></p>
+        <p>An inspiring story about art, ambition, and the courage to chase a dream.</p>
+        <a href="add-entry.html" class="btn btn-sm" style="margin-top:10px">+ Add to Library</a>
+      </div>
+    </div>
+
+    <div class="rec-card" data-type="anime" data-genre="Sci-Fi">
+      <div class="entry-thumb-placeholder rec-thumb" style="background:linear-gradient(135deg,#0369a1cc,#0369a144)">ANIME</div>
+      <div class="rec-info">
+        <span class="tag tag-anime" style="font-size:11px">Anime</span>
+        <h3>Neon Genesis Evangelion</h3>
+        <p><span class="tag" style="font-size:11px">Sci-Fi</span></p>
+        <p>A landmark mecha series that gets deeply personal and philosophically rich.</p>
+        <a href="add-entry.html" class="btn btn-sm" style="margin-top:10px">+ Add to Library</a>
+      </div>
+    </div>
+
+    <div class="rec-card" data-type="anime" data-genre="Romance">
+      <div class="entry-thumb-placeholder rec-thumb" style="background:linear-gradient(135deg,#db2777cc,#db277744)">ANIME</div>
+      <div class="rec-info">
+        <span class="tag tag-anime" style="font-size:11px">Anime</span>
+        <h3>Your Name</h3>
+        <p><span class="tag" style="font-size:11px">Romance</span></p>
+        <p>A breathtaking film that blends romance, mystery, and stunning visuals seamlessly.</p>
+        <a href="add-entry.html" class="btn btn-sm" style="margin-top:10px">+ Add to Library</a>
+      </div>
+    </div>
+
+  </div>
+
+  <div id="no-results" class="empty-state" style="display:none">
+    <p>No recommendations found for that filter.</p>
+  </div>
+
+</section>
+
+<footer>
+  <p>&copy; 2026 AniTrack | Anime &amp; Manga Tracker</p>
+</footer>
+
+<script src="../assets/js/main.js"></script>
+<script>
+  initNav('recommendations');
+  const cards  = document.querySelectorAll('.rec-card');
+  const noRes  = document.getElementById('no-results');
+
+  function filterRecs() {
+    const type  = document.getElementById('type-filter').value;
+    const genre = document.getElementById('genre-filter').value;
+    let visible = 0;
+
+    cards.forEach(c => {
+      const match = (!type || c.dataset.type === type) && (!genre || c.dataset.genre === genre);
+      c.style.display = match ? '' : 'none';
+      if (match) visible++;
+    });
+
+    noRes.style.display = visible ? 'none' : 'block';
+  }
+
+  ['type-filter','genre-filter'].forEach(id =>
+    document.getElementById(id).addEventListener('change', filterRecs)
+  );
+</script>
+</body>
+</html>

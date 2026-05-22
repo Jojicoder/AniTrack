@@ -1,0 +1,119 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Reviews - AniTrack</title>
+  <link rel="stylesheet" href="../assets/css/style.css">
+</head>
+<body>
+
+<header></header>
+
+<section class="section">
+  <div id="content"></div>
+</section>
+
+<footer>
+  <p>&copy; 2026 AniTrack | Anime &amp; Manga Tracker</p>
+</footer>
+
+<script src="../assets/js/main.js"></script>
+<script>
+  initNav('works');
+
+  const id = getQueryParam('id');
+  const work = getWorkById(id);
+  const el = document.getElementById('content');
+
+  function replyHtml(review) {
+    const replies = getRepliesByReview(review.id);
+    return `<div class="review-replies">
+      ${replies.length
+        ? replies.map(reply => {
+            const replyUser = getUserById(reply.userId);
+            return `<div class="review-reply">
+              <div class="review-reply-meta">
+                ${avatarHtml(replyUser, 'mini-avatar')}
+                <strong>${userProfileLink(replyUser)}</strong>
+                <span>${escHtml(reply.createdAt)}</span>
+              </div>
+              <p>${escHtml(reply.text)}</p>
+            </div>`;
+          }).join('')
+        : '<p class="review-reply-empty">No replies yet.</p>'
+      }
+    </div>`;
+  }
+
+  function replyFormHtml(review, currentUser) {
+    if (!currentUser) return '<p class="review-login-note">Log in to reply.</p>';
+    return `<form class="reply-form" data-review-id="${review.id}">
+      <textarea rows="2" placeholder="Reply to this review..." maxlength="1000" required></textarea>
+      <button type="submit" class="btn btn-sm btn-outline">Reply</button>
+    </form>`;
+  }
+
+  if (!work) {
+    el.innerHTML = '<div class="empty-state"><p>Work not found.</p><a href="works.html" class="btn">Back to Works</a></div>';
+  } else {
+    document.title = `Reviews: ${work.title} - AniTrack`;
+    const reviews = getReviewsByWork(work.id);
+    const avg = avgRating(reviews);
+    const user = getCurrentUser();
+    const alreadyReviewed = user && reviews.some(r => r.userId === user.id);
+
+    const reviewsHtml = reviews.length
+      ? reviews.slice().reverse().map(r => {
+          const u = getUserById(r.userId);
+          return `<div class="review-card">
+            <div class="review-header">
+              ${avatarHtml(u, 'mini-avatar')}
+              <span class="reviewer-name">${userProfileLink(u, '?')}</span>
+              ${ratingBadge(r.rating)}
+              <span class="review-date">${r.createdAt}</span>
+            </div>
+            <p class="review-text">${escHtml(r.text)}</p>
+            <p class="review-status">Status: ${escHtml(r.userStatus)}</p>
+            ${replyHtml(r)}
+            ${replyFormHtml(r, user)}
+          </div>`;
+        }).join('')
+      : '<div class="empty-state"><p>No reviews yet. Be the first!</p></div>';
+
+    el.innerHTML = `
+      <div style="margin-bottom:16px">
+        <a href="works-detail.html?id=${work.id}" style="color:var(--muted);font-size:14px">&larr; Back to ${escHtml(work.title)}</a>
+      </div>
+      <div class="page-header">
+        <h2>${escHtml(work.title)}</h2>
+        <p>${escHtml(work.titleJp)} &middot; ${avg !== null ? `Avg Score &#9733; ${avg} / 10` : 'No reviews yet'} &middot; ${reviews.length} reviews</p>
+      </div>
+      <div style="text-align:center;margin-bottom:28px">
+        ${user
+          ? alreadyReviewed
+            ? '<span style="color:var(--muted)">&#10003; You have already reviewed this work</span>'
+            : `<a href="works-add-review.html?id=${work.id}" class="btn">Write a Review</a>`
+          : '<a href="login.html" class="btn btn-outline">Log in to Write a Review</a>'
+        }
+      </div>
+      <div class="review-list">${reviewsHtml}</div>`;
+
+    document.querySelectorAll('.reply-form').forEach(form => {
+      form.addEventListener('submit', event => {
+        event.preventDefault();
+        const textarea = form.querySelector('textarea');
+        const text = textarea.value.trim();
+        if (!text || !user) return;
+        saveReviewReply({
+          reviewId: form.dataset.reviewId,
+          userId: user.id,
+          text
+        });
+        location.reload();
+      });
+    });
+  }
+</script>
+</body>
+</html>

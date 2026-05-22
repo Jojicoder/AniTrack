@@ -1,0 +1,181 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Add to My Library - AniTrack</title>
+  <link rel="stylesheet" href="../assets/css/style.css">
+</head>
+<body>
+
+<header></header>
+
+<section class="section">
+  <div id="entry-page"></div>
+
+  <!-- Add to Library Form -->
+  <div class="form-box" id="entry-form-box" style="display:none">
+    <div id="msg"></div>
+    <form id="entry-form">
+
+      <label for="status">Status <span style="color:var(--accent)">*</span></label>
+      <select id="status" name="status" required>
+        <option value="">Select your status</option>
+      </select>
+
+      <label for="rating">Your Rating</label>
+      <select id="rating" name="rating">
+        <option value="">No rating yet</option>
+        <option value="10">&#9733; 10 / 10 &mdash; Masterpiece</option>
+        <option value="9">&#9733; 9 / 10 &mdash; Great</option>
+        <option value="8">&#9733; 8 / 10 &mdash; Very Good</option>
+        <option value="7">&#9733; 7 / 10 &mdash; Good</option>
+        <option value="6">&#9733; 6 / 10 &mdash; Fine</option>
+        <option value="5">&#9733; 5 / 10 &mdash; Average</option>
+        <option value="4">&#9733; 4 / 10 &mdash; Bad</option>
+        <option value="3">&#9733; 3 / 10 &mdash; Very Bad</option>
+        <option value="2">&#9733; 2 / 10 &mdash; Awful</option>
+        <option value="1">&#9733; 1 / 10 &mdash; Appalling</option>
+      </select>
+
+      <label for="review">Review / Notes</label>
+      <textarea
+        id="review"
+        name="review"
+        rows="5"
+        placeholder="Write your thoughts, notes, or review..."
+        maxlength="2000"
+      ></textarea>
+      <p style="text-align:right;font-size:12px;color:var(--muted);margin-top:-8px">
+        <span id="char-count">0</span> / 2000
+      </p>
+
+      <button type="submit" class="btn" id="submit-btn" style="width:100%">Add to My Library</button>
+      <a href="works.html" class="btn btn-muted" style="width:100%;margin-top:8px;text-align:center">Cancel</a>
+    </form>
+  </div>
+
+</section>
+
+<footer>
+  <p>&copy; 2026 AniTrack | Anime &amp; Manga Tracker</p>
+</footer>
+
+<script src="../assets/js/main.js"></script>
+<script>
+  initNav('');
+  const user = requireAuth();
+  const workId = getQueryParam('work_id') || getQueryParam('id');
+  const work = getWorkById(workId);
+  const entryPage = document.getElementById('entry-page');
+  const formBox = document.getElementById('entry-form-box');
+  const statusSelect = document.getElementById('status');
+  const ratingSelect = document.getElementById('rating');
+  const reviewArea = document.getElementById('review');
+  const charCount = document.getElementById('char-count');
+  const submitBtn = document.getElementById('submit-btn');
+
+  function statusChoices(type) {
+    return type === 'manga'
+      ? ['Reading', 'Completed', 'Plan to Read', 'On Hold', 'Dropped']
+      : ['Watching', 'Completed', 'Plan to Watch', 'On Hold', 'Dropped'];
+  }
+
+  function renderMissing() {
+    entryPage.innerHTML = `
+      <div class="empty-state">
+        <p>Work not found.</p>
+        <a href="works.html" class="btn">Back to Works</a>
+      </div>`;
+  }
+
+  function renderWork() {
+    const existing = user ? getLibraryEntry(user.id, work.id) : null;
+    const cover = work.imageUrl
+      ? `<img src="${escHtml(work.imageUrl)}" alt="${escHtml(work.title)} cover" style="width:120px;height:170px;object-fit:cover;border-radius:8px">`
+      : `<div style="width:120px;height:170px">${workPlaceholder(work)}</div>`;
+
+    entryPage.innerHTML = `
+      <div style="margin-bottom:20px">
+        <a href="works-detail.html?id=${work.id}" style="color:var(--muted);font-size:14px">&larr; Back to Work</a>
+      </div>
+
+      <div style="display:grid;grid-template-columns:120px 1fr;gap:24px;align-items:center;
+                  background:var(--panel);border:1px solid var(--border);border-radius:10px;
+                  padding:20px;margin-bottom:32px">
+        ${cover}
+        <div>
+          <p style="font-size:12px;color:var(--muted);font-weight:800;letter-spacing:1px;text-transform:uppercase;margin-bottom:6px">
+            ${existing ? 'Updating your library' : 'Adding to your library'}
+          </p>
+          <h2 style="font-size:clamp(20px,3vw,30px);font-weight:800;margin-bottom:6px">${escHtml(work.title)}</h2>
+          <p style="color:var(--muted);font-size:15px;margin-bottom:10px">${escHtml(work.titleJp)}</p>
+          <div style="display:flex;gap:8px;flex-wrap:wrap">
+            <span class="tag ${work.type === 'anime' ? 'tag-anime' : 'tag-manga'}">${work.type === 'anime' ? 'Anime' : 'Manga'}</span>
+            <span class="tag">${escHtml(work.genre)}</span>
+            <span class="tag">${escHtml(work.year)}</span>
+          </div>
+        </div>
+      </div>`;
+
+    statusSelect.innerHTML = '<option value="">Select your status</option>' + statusChoices(work.type)
+      .map(status => `<option value="${escHtml(status)}">${escHtml(status)}</option>`)
+      .join('');
+
+    if (existing) {
+      statusSelect.value = existing.status || '';
+      ratingSelect.value = existing.rating || '';
+      reviewArea.value = existing.note || '';
+      submitBtn.textContent = 'Update My Library';
+      charCount.textContent = reviewArea.value.length;
+    } else {
+      statusSelect.value = work.type === 'manga' ? 'Plan to Read' : 'Plan to Watch';
+    }
+
+    formBox.style.display = '';
+  }
+
+  function saveReviewIfNeeded(entry) {
+    if (!entry.rating && !entry.note) return;
+    const reviews = getReviews();
+    const existingIndex = reviews.findIndex(review => review.userId === user.id && review.workId === work.id);
+    const reviewData = {
+      id: existingIndex >= 0 ? reviews[existingIndex].id : Date.now(),
+      workId: work.id,
+      userId: user.id,
+      rating: entry.rating,
+      userStatus: entry.status,
+      text: entry.note,
+      createdAt: new Date().toISOString().split('T')[0]
+    };
+    if (existingIndex >= 0) reviews[existingIndex] = reviewData;
+    else reviews.push(reviewData);
+    saveReviews(reviews);
+  }
+
+  if (!work) {
+    renderMissing();
+  } else if (user) {
+    renderWork();
+
+    reviewArea.addEventListener('input', function() {
+      charCount.textContent = this.value.length;
+    });
+
+    document.getElementById('entry-form').addEventListener('submit', function(e) {
+      e.preventDefault();
+      const entry = saveLibraryEntry({
+        userId: user.id,
+        workId: work.id,
+        status: statusSelect.value,
+        rating: Number(ratingSelect.value) || null,
+        note: reviewArea.value.trim()
+      });
+      saveReviewIfNeeded(entry);
+      showAlert(document.getElementById('msg'), 'success', `${work.title} has been saved to My Library.`);
+      submitBtn.textContent = 'Update My Library';
+    });
+  }
+</script>
+</body>
+</html>

@@ -1,0 +1,151 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Browse Works - AniTrack</title>
+  <link rel="stylesheet" href="../assets/css/style.css">
+</head>
+<body>
+
+<header></header>
+
+<section class="section">
+  <div class="page-header">
+    <h2>Browse Works</h2>
+    <p>Find anime &amp; manga to add to your library</p>
+    <div style="margin-top:16px">
+      <a href="add-work.html" class="btn">+ Add New Work</a>
+    </div>
+  </div>
+
+  <!-- Search & Filter -->
+  <div class="filter-area">
+    <input type="text" id="q" placeholder="Search by title...">
+    <select id="type-filter">
+      <option value="">All Types</option>
+      <option value="anime">Anime</option>
+      <option value="manga">Manga</option>
+    </select>
+    <select id="genre-filter">
+      <option value="">All Genres</option>
+      <option value="Action">Action</option>
+      <option value="Adventure">Adventure</option>
+      <option value="Dark Fantasy">Dark Fantasy</option>
+      <option value="Historical">Historical</option>
+      <option value="Slice of Life">Slice of Life</option>
+      <option value="Romance">Romance</option>
+      <option value="Sci-Fi">Sci-Fi</option>
+      <option value="Sports">Sports</option>
+    </select>
+    <select id="status-filter">
+      <option value="">All Status</option>
+      <option value="Completed">Completed</option>
+      <option value="Ongoing">Ongoing</option>
+      <option value="Airing">Airing</option>
+    </select>
+  </div>
+
+  <div class="grid" id="works-grid"></div>
+
+  <div id="no-results" class="empty-state" style="display:none">
+    <p>No works found.</p>
+  </div>
+
+</section>
+
+<footer>
+  <p>&copy; 2026 AniTrack | Anime &amp; Manga Tracker</p>
+</footer>
+
+<script src="../assets/js/main.js"></script>
+<script>
+  initNav('works');
+  const works = getWorks();
+  const user = getCurrentUser();
+  const worksGrid = document.getElementById('works-grid');
+  const noRes = document.getElementById('no-results');
+  const searchInput = document.getElementById('q');
+  const typeFilter = document.getElementById('type-filter');
+  const genreFilter = document.getElementById('genre-filter');
+  const statusFilter = document.getElementById('status-filter');
+
+  function fillSelect(select, label, values) {
+    const current = select.value;
+    select.innerHTML = `<option value="">${escHtml(label)}</option>` + values
+      .filter(Boolean)
+      .sort((a, b) => a.localeCompare(b))
+      .map(value => `<option value="${escHtml(value)}">${escHtml(value)}</option>`)
+      .join('');
+    select.value = current;
+  }
+
+  function countText(work) {
+    if (work.type === 'anime') return `${work.episodes || '?'} eps`;
+    return `${work.chapters || '?'} ch`;
+  }
+
+  function actionButton(work) {
+    if (!user) return '<a href="login.html" class="btn" style="margin-top:8px">Login to Add</a>';
+    const entry = getLibraryEntry(user.id, work.id);
+    const label = entry ? 'Edit Library Entry' : '+ Add to My Library';
+    const extraClass = entry ? ' btn-muted' : '';
+    return `<a href="add-entry.html?work_id=${work.id}" class="btn${extraClass}" style="margin-top:8px">${label}</a>`;
+  }
+
+  function workCard(work) {
+    const image = work.imageUrl
+      ? `<img class="work-card-image" src="${escHtml(work.imageUrl)}" alt="${escHtml(work.title)} cover">`
+      : workPlaceholder(work);
+
+    return `
+      <div class="card" data-title="${escHtml(work.title)} ${escHtml(work.titleJp)}" data-type="${escHtml(work.type)}" data-genre="${escHtml(work.genre)}" data-status="${escHtml(work.status)}">
+        ${image}
+        <div class="card-content">
+          <span class="tag ${work.type === 'anime' ? 'tag-anime' : 'tag-manga'}">${work.type === 'anime' ? 'Anime' : 'Manga'}</span>
+          <span class="tag" style="margin-left:4px">${escHtml(work.genre)}</span>
+          <h3>${escHtml(work.title)}</h3>
+          <p style="font-size:13px;color:var(--muted)">${escHtml(work.year)} &middot; ${escHtml(countText(work))} &middot; ${escHtml(work.status)}</p>
+          <a href="works-detail.html?id=${work.id}" class="btn btn-outline" style="margin-top:10px">View Details</a>
+          ${actionButton(work)}
+        </div>
+      </div>`;
+  }
+
+  function renderWorks() {
+    fillSelect(genreFilter, 'All Genres', [...new Set(works.map(w => w.genre))]);
+    fillSelect(statusFilter, 'All Status', [...new Set(works.map(w => w.status))]);
+    worksGrid.innerHTML = works.map(workCard).join('');
+
+    filterWorks();
+  }
+
+  function filterWorks() {
+    const cards  = document.querySelectorAll('#works-grid .card');
+    const q      = searchInput.value.toLowerCase();
+    const type   = typeFilter.value;
+    const genre  = genreFilter.value;
+    const status = statusFilter.value;
+    let visible  = 0;
+
+    cards.forEach(c => {
+      const match =
+        (!q      || c.dataset.title.toLowerCase().includes(q)) &&
+        (!type   || c.dataset.type   === type) &&
+        (!genre  || c.dataset.genre  === genre) &&
+        (!status || c.dataset.status === status);
+      c.style.display = match ? '' : 'none';
+      if (match) visible++;
+    });
+
+    noRes.style.display = visible ? 'none' : 'block';
+  }
+
+  ['q','type-filter','genre-filter','status-filter'].forEach(id =>
+    document.getElementById(id).addEventListener('input', filterWorks)
+  );
+
+  renderWorks();
+</script>
+</body>
+</html>

@@ -1,0 +1,282 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Work Detail - AniTrack</title>
+  <link rel="stylesheet" href="../assets/css/style.css">
+</head>
+<body>
+
+<header></header>
+
+<section class="section">
+  <div id="content"></div>
+</section>
+
+<footer>
+  <p>&copy; 2026 AniTrack | Anime &amp; Manga Tracker</p>
+</footer>
+
+<script src="../assets/js/main.js"></script>
+<script>
+  initNav('works');
+
+  const id = Number(getQueryParam('id'));
+  const work = getWorkById(id);
+  const content = document.getElementById('content');
+
+  function statusOptions(type, selected = '') {
+    const options = type === 'manga'
+      ? ['Reading', 'Completed', 'Plan to Read', 'On Hold', 'Dropped']
+      : ['Watching', 'Completed', 'Plan to Watch', 'On Hold', 'Dropped'];
+    return options.map(status =>
+      `<option value="${escHtml(status)}"${status === selected ? ' selected' : ''}>${escHtml(status)}</option>`
+    ).join('');
+  }
+
+  function replyHtml(review) {
+    const replies = getRepliesByReview(review.id);
+    const repliesHtml = replies.length
+      ? replies.map(reply => {
+          const replyUser = getUserById(reply.userId);
+          return `<div class="review-reply">
+            <div class="review-reply-meta">
+              ${avatarHtml(replyUser, 'mini-avatar')}
+              <strong>${userProfileLink(replyUser)}</strong>
+              <span>${escHtml(reply.createdAt)}</span>
+            </div>
+            <p>${escHtml(reply.text)}</p>
+          </div>`;
+        }).join('')
+      : '<p class="review-reply-empty">No replies yet.</p>';
+
+    return `<div class="review-replies">
+      ${repliesHtml}
+    </div>`;
+  }
+
+  function replyFormHtml(review, currentUser) {
+    if (!currentUser) {
+      return '<p class="review-login-note">Log in to reply.</p>';
+    }
+    return `<form class="reply-form" data-review-id="${review.id}">
+      <textarea rows="2" placeholder="Reply to this review..." maxlength="1000" required></textarea>
+      <button type="submit" class="btn btn-sm btn-outline">Reply</button>
+    </form>`;
+  }
+
+  function reviewHtml(reviews, currentUser) {
+    if (!reviews.length) {
+      return '<div class="empty-state"><p>No reviews yet.</p></div>';
+    }
+
+    return reviews.slice().reverse().map(review => {
+      const user = getUserById(review.userId);
+      return `<div class="review-card">
+        <div class="review-header">
+          ${avatarHtml(user, 'mini-avatar')}
+          <span class="reviewer-name">${userProfileLink(user)}</span>
+          ${ratingBadge(review.rating)}
+          <span class="review-date">${escHtml(review.createdAt)}</span>
+        </div>
+        <p class="review-text">${escHtml(review.text)}</p>
+        <p class="review-status">Status: ${escHtml(review.userStatus)}</p>
+        ${replyHtml(review)}
+        ${replyFormHtml(review, currentUser)}
+      </div>`;
+    }).join('');
+  }
+
+  function render(message = '') {
+    if (!work) {
+      content.innerHTML = '<div class="empty-state"><p>Work not found.</p><a href="works.html" class="btn">Back to Works</a></div>';
+      return;
+    }
+
+    document.title = `${work.title} - AniTrack`;
+
+    const user = getCurrentUser();
+    const reviews = getReviewsByWork(work.id);
+    const avg = avgRating(reviews);
+    const userReview = user ? reviews.find(review => review.userId === user.id) : null;
+    const libraryEntry = user ? getLibraryEntry(user.id, work.id) : null;
+    const countLabel = work.type === 'anime' ? 'Episodes' : 'Chapters';
+    const countValue = work.type === 'anime'
+      ? `${work.episodes || '?'} eps`
+      : `${work.chapters || '?'} ch`;
+
+    content.innerHTML = `
+      <div style="margin-bottom:16px">
+        <a href="works.html" style="color:var(--muted);font-size:14px">&larr; All Works</a>
+      </div>
+
+      <div class="work-detail">
+        <div class="work-detail-sidebar">
+          ${work.imageUrl
+            ? `<img src="${escHtml(work.imageUrl)}" alt="${escHtml(work.title)} cover" class="work-cover-img">`
+            : workPlaceholder(work)
+          }
+        </div>
+
+        <div class="work-detail-info">
+          <div>
+            <span class="tag ${work.type === 'anime' ? 'tag-anime' : 'tag-manga'}">${work.type === 'anime' ? 'Anime' : 'Manga'}</span>
+            <span class="tag" style="margin-left:6px">${escHtml(work.genre)}</span>
+          </div>
+
+          <h2 style="margin-top:10px">${escHtml(work.title)}</h2>
+          <p class="title-jp">${escHtml(work.titleJp)}</p>
+
+          <div class="meta-grid">
+            <div class="meta-item"><div class="meta-label">Year</div><div class="meta-value">${work.year}</div></div>
+            <div class="meta-item"><div class="meta-label">${countLabel}</div><div class="meta-value">${countValue}</div></div>
+            <div class="meta-item"><div class="meta-label">Status</div><div class="meta-value" style="font-size:15px">${escHtml(work.status)}</div></div>
+            <div class="meta-item"><div class="meta-label">Average</div><div class="meta-value">${avg !== null ? `&#9733; ${avg}` : '—'}</div></div>
+            <div class="meta-item"><div class="meta-label">Reviews</div><div class="meta-value">${reviews.length}</div></div>
+          </div>
+
+          <p class="synopsis">${escHtml(work.synopsis)}</p>
+
+          <div class="detail-panel">
+            <div class="detail-panel-title">My Library</div>
+            ${user ? `
+              <div class="detail-form-row">
+                <div>
+                  <label for="library-status">Status</label>
+                  <select id="library-status">${statusOptions(work.type, libraryEntry ? libraryEntry.status : '')}</select>
+                </div>
+                <button type="button" class="btn" id="save-library-btn">${libraryEntry ? 'Update Library' : '+ Add to My Library'}</button>
+              </div>
+              <p style="color:var(--muted);font-size:13px;margin-top:10px">
+                ${libraryEntry ? `Currently saved as ${escHtml(libraryEntry.status)}.` : 'Save this work to your personal library.'}
+              </p>
+            ` : `
+              <p style="color:var(--muted);font-size:14px;margin-bottom:12px">Log in to add this work to your library.</p>
+              <a href="login.html" class="btn btn-muted">Login</a>
+            `}
+          </div>
+
+          <div class="detail-panel">
+            <div class="detail-panel-title">Rate This Work</div>
+            ${user ? `
+              <div class="quick-rating" id="quick-rating">
+                ${Array.from({ length: 10 }, (_, index) => {
+                  const score = index + 1;
+                  return `<button type="button" class="rating-choice${userReview && userReview.rating === score ? ' active' : ''}" data-rating="${score}">${score}</button>`;
+                }).join('')}
+              </div>
+              <textarea id="quick-review-text" rows="3" placeholder="Optional short note..." style="margin-top:12px">${userReview ? escHtml(userReview.text) : ''}</textarea>
+              <div class="detail-form-row" style="margin-top:10px">
+                <div>
+                  <label for="review-status">Your Status</label>
+                  <select id="review-status">${statusOptions(work.type, userReview ? userReview.userStatus : (libraryEntry ? libraryEntry.status : ''))}</select>
+                </div>
+                <button type="button" class="btn btn-outline" id="save-rating-btn">Save Rating</button>
+              </div>
+            ` : `
+              <div class="quick-rating" style="margin-bottom:12px">
+                ${Array.from({ length: 10 }, (_, index) => `<button type="button" class="rating-choice" disabled>${index + 1}</button>`).join('')}
+              </div>
+              <p style="color:var(--muted);font-size:14px;margin-bottom:12px">Log in to rate or review this work.</p>
+              <a href="login.html" class="btn btn-muted">Login to Rate</a>
+            `}
+            <div class="detail-message" id="detail-message">${escHtml(message)}</div>
+          </div>
+
+          <div class="work-actions">
+            <a href="works-review.html?id=${work.id}" class="btn btn-outline">All Reviews (${reviews.length})</a>
+            ${user
+              ? `<a href="works-add-review.html?id=${work.id}" class="btn btn-muted">${userReview ? 'Edit Full Review' : 'Write Full Review'}</a>`
+              : ''
+            }
+          </div>
+
+          ${(work.streamUrl || work.buyUrl) ? `
+            <div class="external-links">
+              <h4 style="color:var(--muted);font-size:13px;font-weight:700;letter-spacing:.05em;text-transform:uppercase;margin-bottom:10px">Where to Watch / Buy</h4>
+              <div style="display:flex;gap:10px;flex-wrap:wrap">
+                ${work.streamUrl ? `<a href="${escHtml(work.streamUrl)}" target="_blank" rel="noopener noreferrer" class="btn btn-stream">Watch Now</a>` : ''}
+                ${work.buyUrl ? `<a href="${escHtml(work.buyUrl)}" target="_blank" rel="noopener noreferrer" class="btn btn-buy">Buy</a>` : ''}
+              </div>
+            </div>
+          ` : ''}
+
+          <h3 style="color:var(--accent);font-weight:800;margin:28px 0 4px">Reviews</h3>
+          <div class="review-list">${reviewHtml(reviews, user)}</div>
+        </div>
+      </div>`;
+
+    if (user) {
+      const saveLibraryBtn = document.getElementById('save-library-btn');
+      if (saveLibraryBtn) {
+        saveLibraryBtn.addEventListener('click', () => {
+          const status = document.getElementById('library-status').value;
+          saveLibraryEntry({ userId: user.id, workId: work.id, status });
+          render('Library updated.');
+        });
+      }
+
+      let selectedRating = userReview ? userReview.rating : null;
+      document.querySelectorAll('.rating-choice').forEach(button => {
+        button.addEventListener('click', () => {
+          selectedRating = Number(button.dataset.rating);
+          document.querySelectorAll('.rating-choice').forEach(choice => choice.classList.remove('active'));
+          button.classList.add('active');
+        });
+      });
+
+      const saveRatingBtn = document.getElementById('save-rating-btn');
+      if (saveRatingBtn) {
+        saveRatingBtn.addEventListener('click', () => {
+          const messageEl = document.getElementById('detail-message');
+          if (!selectedRating) {
+            messageEl.textContent = 'Choose a rating first.';
+            messageEl.style.color = '#fca5a5';
+            return;
+          }
+
+          const allReviews = getReviews();
+          const existingIndex = allReviews.findIndex(review => review.workId === work.id && review.userId === user.id);
+          const note = document.getElementById('quick-review-text').value.trim();
+          const userStatus = document.getElementById('review-status').value;
+          const nextReview = {
+            id: existingIndex >= 0 ? allReviews[existingIndex].id : Date.now(),
+            workId: work.id,
+            userId: user.id,
+            rating: selectedRating,
+            userStatus,
+            text: note || 'Quick rating from work detail.',
+            createdAt: existingIndex >= 0 ? allReviews[existingIndex].createdAt : new Date().toISOString().split('T')[0]
+          };
+
+          if (existingIndex >= 0) allReviews[existingIndex] = nextReview;
+          else allReviews.push(nextReview);
+
+          saveReviews(allReviews);
+          saveLibraryEntry({ userId: user.id, workId: work.id, status: userStatus, rating: selectedRating, note });
+          render('Rating saved.');
+        });
+      }
+
+      document.querySelectorAll('.reply-form').forEach(form => {
+        form.addEventListener('submit', event => {
+          event.preventDefault();
+          const textarea = form.querySelector('textarea');
+          const text = textarea.value.trim();
+          if (!text) return;
+          saveReviewReply({
+            reviewId: form.dataset.reviewId,
+            userId: user.id,
+            text
+          });
+          render('Reply posted.');
+        });
+      });
+    }
+  }
+
+  render();
+</script>
+</body>
+</html>
