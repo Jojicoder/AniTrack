@@ -27,3 +27,25 @@ INSERT INTO works (title, title_jp, type, genre, description, image_url, release
 ('Bocchi the Rock!',                     'ぼっち・ざ・ろっく！',                 'anime', 'Comedy',        'A socially anxious guitarist joins a band and slowly learns to connect with others through music and live performances.',                                                                                               'https://cdn.myanimelist.net/images/anime/1448/127956l.jpg',  2022, '12 eps',   'Completed'),
 ('Tokyo Ghoul',                          '東京喰種トーキョーグール',             'anime', 'Horror',        'Ken Kaneki becomes half-ghoul after a deadly encounter and is forced to survive between human society and the hidden world of ghouls.',                                                                                 'https://cdn.myanimelist.net/images/anime/1498/134443l.jpg',  2014, '12 eps',   'Completed'),
 ('Sword Art Online',                     'ソードアート・オンライン',             'anime', 'Fantasy',       'Players trapped inside a virtual reality MMORPG must clear the game to escape, with death in the game meaning death in real life.',                                                                                   'https://cdn.myanimelist.net/images/anime/11/39717l.jpg',     2012, '25 eps',   'Completed');
+
+-- Demo account (password: demo1234)
+INSERT INTO users (username, email, password, role, bio) VALUES
+('demo', 'demo@anitrack.com', '$2y$12$ou3PyFD/W8Dc8yDNImsQfeeb8QmSP0EBqZ492/VigbBnm0uMm8.W6', 'user', 'Just a demo account exploring AniTrack. Feel free to look around!');
+
+-- Demo library entries (various statuses)
+INSERT INTO user_library (user_id, work_id, status, rating, note) VALUES
+((SELECT id FROM users WHERE username = 'demo'), (SELECT id FROM works WHERE title = 'Frieren: Beyond Journey\'s End'),  'Completed',      10, 'Absolute masterpiece.'),
+((SELECT id FROM users WHERE username = 'demo'), (SELECT id FROM works WHERE title = 'Fullmetal Alchemist: Brotherhood'), 'Completed',      10, NULL),
+((SELECT id FROM users WHERE username = 'demo'), (SELECT id FROM works WHERE title = 'Steins;Gate'),                      'Completed',       9, 'Mind-bending story.'),
+((SELECT id FROM users WHERE username = 'demo'), (SELECT id FROM works WHERE title = 'Vinland Saga'),                    'Completed',       9, NULL),
+((SELECT id FROM users WHERE username = 'demo'), (SELECT id FROM works WHERE title = 'Attack on Titan'),                 'Completed',       8, NULL),
+((SELECT id FROM users WHERE username = 'demo'), (SELECT id FROM works WHERE title = 'Demon Slayer'),                    'Completed',       8, NULL),
+((SELECT id FROM users WHERE username = 'demo'), (SELECT id FROM works WHERE title = 'Jujutsu Kaisen'),                  'Watching',     NULL, NULL),
+((SELECT id FROM users WHERE username = 'demo'), (SELECT id FROM works WHERE title = 'Hunter x Hunter'),                 'On Hold',      NULL, 'Paused at the Chimera Ant arc.'),
+((SELECT id FROM users WHERE username = 'demo'), (SELECT id FROM works WHERE title = 'Berserk'),                         'Plan to Read', NULL, NULL),
+((SELECT id FROM users WHERE username = 'demo'), (SELECT id FROM works WHERE title = 'One Piece'),                       'Plan to Read', NULL, NULL);
+
+-- Demo reviews
+INSERT INTO reviews (work_id, user_id, rating, body, user_status) VALUES
+((SELECT id FROM works WHERE title = 'Frieren: Beyond Journey\'s End'),  (SELECT id FROM users WHERE username = 'demo'), 10, 'One of the most emotionally mature anime I have ever seen. The pacing is deliberate and the themes of time, grief, and connection hit hard.', 'Completed'),
+((SELECT id FROM works WHERE title = 'Steins;Gate'),                      (SELECT id FROM users WHERE username = 'demo'),  9, 'Slow start but the payoff is incredible. The time travel logic is tight and the characters are genuinely compelling.', 'Completed');

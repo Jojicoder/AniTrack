@@ -47,6 +47,8 @@ $stmt->execute([$_SESSION['user_id'], $workId, $status]);
 
 if ($redirect === 'detail') {
     header('Location: ' . BASE_URL . '/pages/work-detail.php?id=' . $workId);
+} elseif ($redirect === 'seasonal') {
+    header('Location: ' . BASE_URL . '/pages/seasonal.php');
 } else {
     header('Location: ' . BASE_URL . '/pages/home.php');
 }

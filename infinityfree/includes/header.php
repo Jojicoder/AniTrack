@@ -44,6 +44,7 @@ $isAdmin = $loggedIn && ($_SESSION['role'] ?? '') === 'admin';
         <li><a href="<?= BASE_URL ?>/"<?= $activePage === 'home' ? ' class="active"' : '' ?>>Home</a></li>
       <?php endif; ?>
       <li><a href="<?= BASE_URL ?>/pages/home.php"<?= $activePage === 'works' ? ' class="active"' : '' ?>>Works</a></li>
+      <li><a href="<?= BASE_URL ?>/pages/seasonal.php"<?= $activePage === 'seasonal' ? ' class="active"' : '' ?>>Seasonal</a></li>
       <?php if ($loggedIn): ?>
         <li><a href="<?= BASE_URL ?>/pages/dashboard.php"<?= $activePage === 'dashboard' ? ' class="active"' : '' ?>>Dashboard</a></li>
         <li><a href="<?= BASE_URL ?>/pages/admin-add-work.php"<?= $activePage === 'add-work' ? ' class="active"' : '' ?>>Add Work</a></li>

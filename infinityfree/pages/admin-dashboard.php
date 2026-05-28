@@ -60,7 +60,7 @@ require_once __DIR__ . '/../includes/header.php';
     </div>
   </div>
 
-  <div style="display:grid;grid-template-columns:1fr 1fr;gap:28px;flex-wrap:wrap">
+  <div class="admin-2col" style="display:grid;grid-template-columns:1fr 1fr;gap:28px">
 
     <div>
       <h3 style="color:var(--accent);font-size:18px;font-weight:800;margin-bottom:14px">Recent Users</h3>

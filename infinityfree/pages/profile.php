@@ -33,6 +33,10 @@ $stmt3 = $pdo->prepare('SELECT COUNT(*) FROM friends WHERE user_id = ?');
 $stmt3->execute([$uid]);
 $friendCount = (int)$stmt3->fetchColumn();
 
+$stmt4 = $pdo->prepare('SELECT status, COUNT(*) as cnt FROM user_library WHERE user_id = ? GROUP BY status ORDER BY cnt DESC');
+$stmt4->execute([$uid]);
+$statusBreakdown = $stmt4->fetchAll(PDO::FETCH_KEY_PAIR);
+
 // Library entries
 $stmt = $pdo->prepare('
     SELECT ul.*, w.title, w.type, w.genre, w.image_url
@@ -151,13 +155,38 @@ require_once __DIR__ . '/../includes/header.php';
     </div>
   </form>
 
-  <div class="stats-grid" style="margin-bottom:32px">
+  <div class="stats-grid" style="margin-bottom:16px">
     <div class="stat-card"><div class="stat-num"><?= (int)$stats['total'] ?></div><div class="stat-label">Library Entries</div></div>
     <div class="stat-card"><div class="stat-num"><?= (int)$stats['anime'] ?></div><div class="stat-label">Anime</div></div>
     <div class="stat-card"><div class="stat-num"><?= (int)$stats['manga'] ?></div><div class="stat-label">Manga</div></div>
     <div class="stat-card"><div class="stat-num"><?= $reviewCount ?></div><div class="stat-label">Reviews</div></div>
     <div class="stat-card"><div class="stat-num"><?= $friendCount ?></div><div class="stat-label">Friends</div></div>
   </div>
+
+  <?php if ($statusBreakdown): ?>
+  <?php
+    $statusColors = [
+      'Completed'    => ['#22c55e', '#166534'],
+      'Watching'     => ['#3b82f6', '#1e3a5f'],
+      'Reading'      => ['#8b5cf6', '#3b1f6e'],
+      'Plan to Watch'=> ['#f59e0b', '#78350f'],
+      'Plan to Read' => ['#f97316', '#7c2d12'],
+      'On Hold'      => ['#94a3b8', '#334155'],
+      'Dropped'      => ['#ef4444', '#7f1d1d'],
+    ];
+  ?>
+  <div style="display:flex;flex-wrap:wrap;gap:8px;margin-bottom:32px">
+    <?php foreach ($statusBreakdown as $status => $cnt):
+      $col = $statusColors[$status] ?? ['#7b3ff2', '#2e1065'];
+    ?>
+    <div style="display:flex;align-items:center;gap:7px;background:<?= $col[1] ?>22;border:1px solid <?= $col[0] ?>55;border-radius:999px;padding:5px 14px">
+      <span style="width:8px;height:8px;border-radius:50%;background:<?= $col[0] ?>;display:inline-block;flex-shrink:0"></span>
+      <span style="font-size:13px;font-weight:700;color:<?= $col[0] ?>"><?= htmlspecialchars($status) ?></span>
+      <span style="font-size:13px;font-weight:800;color:var(--text)"><?= (int)$cnt ?></span>
+    </div>
+    <?php endforeach; ?>
+  </div>
+  <?php endif; ?>
 
   <h3 style="color:var(--accent);font-size:20px;font-weight:800;margin-bottom:14px">My Library</h3>
   <?php if ($entries): ?>

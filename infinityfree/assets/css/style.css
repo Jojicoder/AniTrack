@@ -789,6 +789,32 @@ footer {
   .work-detail { grid-template-columns: 1fr; }
   .work-detail-sidebar { position: static; max-width: 280px; margin: 0 auto; }
 }
+@media (max-width: 640px) {
+  header { padding: 10px 16px; }
+
+  /* Profile */
+  .profile-header { flex-direction: column; align-items: center; text-align: center; }
+
+  /* Stats: 2列 */
+  .stats-grid { grid-template-columns: repeat(2, 1fr); }
+
+  /* Admin users table: Library・Reviews・Joined を非表示 */
+  .users-table th:nth-child(4), .users-table td:nth-child(4),
+  .users-table th:nth-child(5), .users-table td:nth-child(5),
+  .users-table th:nth-child(6), .users-table td:nth-child(6) { display: none; }
+  .users-table td:nth-child(2) { max-width: 120px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .users-table .row-actions { flex-direction: column; align-items: flex-end; }
+
+  /* Admin works table: Library・Reviews を非表示 */
+  .works-table th:nth-child(4), .works-table td:nth-child(4),
+  .works-table th:nth-child(5), .works-table td:nth-child(5) { display: none; }
+
+  /* Admin dashboard 2列グリッド → 1列 */
+  .admin-2col { grid-template-columns: 1fr !important; }
+
+  /* タッチスクロール */
+  .table-wrap { -webkit-overflow-scrolling: touch; }
+}
 @media (max-width: 600px) {
   .section, .hero { width: calc(100% - 32px); padding: 56px 0; }
   .hero { min-height: auto; }

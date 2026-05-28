@@ -17,13 +17,22 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $targetId = (int)($_POST['target_id'] ?? 0);
     $action   = $_POST['action'] ?? '';
 
-    if ($targetId && $targetId !== (int)$_SESSION['user_id']) {
-        if ($action === 'make_admin') {
-            $pdo->prepare('UPDATE users SET role = "admin" WHERE id = ?')->execute([$targetId]);
-        } elseif ($action === 'make_user') {
-            $pdo->prepare('UPDATE users SET role = "user" WHERE id = ?')->execute([$targetId]);
-        } elseif ($action === 'delete') {
-            $pdo->prepare('DELETE FROM users WHERE id = ?')->execute([$targetId]);
+    if ($targetId) {
+        if ($action === 'reset_password') {
+            $newPassword = $_POST['new_password'] ?? '';
+            if (strlen($newPassword) >= 6) {
+                $hash = password_hash($newPassword, PASSWORD_DEFAULT);
+                $pdo->prepare('UPDATE users SET password = ? WHERE id = ?')->execute([$hash, $targetId]);
+                $_SESSION['flash_msg'] = 'Password has been reset successfully.';
+            }
+        } elseif ($targetId !== (int)$_SESSION['user_id']) {
+            if ($action === 'make_admin') {
+                $pdo->prepare('UPDATE users SET role = "admin" WHERE id = ?')->execute([$targetId]);
+            } elseif ($action === 'make_user') {
+                $pdo->prepare('UPDATE users SET role = "user" WHERE id = ?')->execute([$targetId]);
+            } elseif ($action === 'delete') {
+                $pdo->prepare('DELETE FROM users WHERE id = ?')->execute([$targetId]);
+            }
         }
     }
     header('Location: ' . BASE_URL . '/pages/admin-users.php');
@@ -53,8 +62,13 @@ require_once __DIR__ . '/../includes/header.php';
     <p><?= count($users) ?> registered users</p>
   </div>
 
-  <div style="overflow-x:auto">
-    <table style="width:100%;border-collapse:collapse;font-size:14px">
+  <?php if (isset($_SESSION['flash_msg'])): ?>
+    <div class="alert alert-success" style="margin-bottom:20px"><?= htmlspecialchars($_SESSION['flash_msg']) ?></div>
+    <?php unset($_SESSION['flash_msg']); ?>
+  <?php endif; ?>
+
+  <div class="table-wrap">
+    <table class="users-table" style="width:100%;border-collapse:collapse;font-size:14px">
       <thead>
         <tr style="border-bottom:2px solid var(--border)">
           <th style="text-align:left;padding:12px 10px;color:var(--muted);font-size:12px;letter-spacing:1px;text-transform:uppercase">User</th>
@@ -90,8 +104,8 @@ require_once __DIR__ . '/../includes/header.php';
           <td style="padding:12px 10px;text-align:center;color:var(--accent);font-weight:800"><?= $u['review_count'] ?></td>
           <td style="padding:12px 10px;color:var(--muted)"><?= htmlspecialchars(substr($u['created_at'], 0, 10)) ?></td>
           <td style="padding:12px 10px;text-align:right">
-            <?php if (!$isSelf): ?>
-              <div style="display:flex;gap:6px;justify-content:flex-end;flex-wrap:wrap">
+            <div class="row-actions" style="display:flex;gap:6px;justify-content:flex-end;flex-wrap:wrap">
+              <?php if (!$isSelf): ?>
                 <?php if ($u['role'] !== 'admin'): ?>
                   <form method="POST">
                     <?= csrfField() ?>
@@ -107,14 +121,26 @@ require_once __DIR__ . '/../includes/header.php';
                     <button type="submit" class="btn btn-sm btn-muted">Remove Admin</button>
                   </form>
                 <?php endif; ?>
+              <?php endif; ?>
+              <form method="POST" id="reset-form-<?= $u['id'] ?>">
+                <?= csrfField() ?>
+                <input type="hidden" name="target_id" value="<?= $u['id'] ?>">
+                <input type="hidden" name="action" value="reset_password">
+                <input type="hidden" name="new_password" id="new-pw-<?= $u['id'] ?>">
+                <button type="button" class="btn btn-sm btn-muted"
+                  onclick="doResetPw(<?= $u['id'] ?>, '<?= htmlspecialchars($u['username'], ENT_QUOTES) ?>')">
+                  Reset PW
+                </button>
+              </form>
+              <?php if (!$isSelf): ?>
                 <form method="POST" onsubmit="return confirm('Delete <?= htmlspecialchars($u['username'], ENT_QUOTES) ?>? This cannot be undone.')">
                   <?= csrfField() ?>
                   <input type="hidden" name="target_id" value="<?= $u['id'] ?>">
                   <input type="hidden" name="action" value="delete">
                   <button type="submit" class="btn btn-sm btn-danger">Delete</button>
                 </form>
-              </div>
-            <?php endif; ?>
+              <?php endif; ?>
+            </div>
           </td>
         </tr>
         <?php endforeach; ?>
@@ -122,5 +148,15 @@ require_once __DIR__ . '/../includes/header.php';
     </table>
   </div>
 </section>
+
+<script>
+function doResetPw(id, name) {
+  var pw = prompt('New password for ' + name + ':\n(6 characters minimum)');
+  if (!pw) return;
+  if (pw.length < 6) { alert('At least 6 characters required.'); return; }
+  document.getElementById('new-pw-' + id).value = pw;
+  document.getElementById('reset-form-' + id).submit();
+}
+</script>
 
 <?php require_once __DIR__ . '/../includes/footer.php'; ?>

@@ -1,3 +1,4 @@
 **/config/db.php
 .DS_Store
 *.log
+infinityfree/cache/*.json

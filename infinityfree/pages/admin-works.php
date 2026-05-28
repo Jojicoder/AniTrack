@@ -31,8 +31,8 @@ require_once __DIR__ . '/../includes/header.php';
     <a href="<?= BASE_URL ?>/pages/admin-add-work.php" class="btn">+ Add Work</a>
   </div>
 
-  <div style="overflow-x:auto">
-    <table style="width:100%;border-collapse:collapse;font-size:14px">
+  <div class="table-wrap">
+    <table class="works-table" style="width:100%;border-collapse:collapse;font-size:14px">
       <thead>
         <tr style="border-bottom:2px solid var(--border)">
           <th style="text-align:left;padding:10px;color:var(--muted);font-size:11px;text-transform:uppercase;letter-spacing:1px">Title</th>
