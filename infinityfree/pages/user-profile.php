@@ -26,11 +26,21 @@ if (!$profileUser) {
 $uid      = isset($_SESSION['user_id']) ? (int)$_SESSION['user_id'] : 0;
 $isSelf   = $uid && $uid === $profileId;
 $isFriend = false;
+$iSentRequest    = false;
+$theySentRequest = false;
 
 if ($uid && !$isSelf) {
-    $stmt2 = $pdo->prepare('SELECT id FROM friends WHERE user_id = ? AND friend_id = ?');
+    $stmt2 = $pdo->prepare('SELECT status FROM friends WHERE user_id = ? AND friend_id = ?');
     $stmt2->execute([$uid, $profileId]);
-    $isFriend = (bool)$stmt2->fetch();
+    $row = $stmt2->fetch();
+    if ($row && $row['status'] === 'accepted') $isFriend = true;
+    if ($row && $row['status'] === 'pending')  $iSentRequest = true;
+
+    if (!$isFriend) {
+        $stmt2 = $pdo->prepare('SELECT id FROM friends WHERE user_id = ? AND friend_id = ? AND status = "pending"');
+        $stmt2->execute([$profileId, $uid]);
+        if ($stmt2->fetch()) $theySentRequest = true;
+    }
 }
 
 // Stats
@@ -48,9 +58,29 @@ $stmt2 = $pdo->prepare('SELECT COUNT(*) FROM reviews WHERE user_id = ?');
 $stmt2->execute([$profileId]);
 $reviewCount = (int)$stmt2->fetchColumn();
 
-$stmt3 = $pdo->prepare('SELECT COUNT(*) FROM friends WHERE user_id = ?');
+$stmt3 = $pdo->prepare('SELECT COUNT(*) FROM friends WHERE user_id = ? AND status = "accepted"');
 $stmt3->execute([$profileId]);
 $friendCount = (int)$stmt3->fetchColumn();
+
+// Compatibility score
+$compatibility = null;
+$commonWorks   = 0;
+if ($uid && !$isSelf) {
+    $stmt = $pdo->prepare('
+        SELECT COUNT(*) FROM user_library a
+        JOIN user_library b ON a.work_id = b.work_id
+        WHERE a.user_id = ? AND b.user_id = ?
+    ');
+    $stmt->execute([$uid, $profileId]);
+    $commonWorks = (int)$stmt->fetchColumn();
+
+    $stmt = $pdo->prepare('SELECT COUNT(*) FROM user_library WHERE user_id = ?');
+    $stmt->execute([$uid]);
+    $myTotal    = (int)$stmt->fetchColumn();
+    $theirTotal = (int)$stats['total'];
+    $union      = $myTotal + $theirTotal - $commonWorks;
+    $compatibility = $union > 0 ? round(($commonWorks / $union) * 100) : 0;
+}
 
 // Library
 $stmt = $pdo->prepare('
@@ -97,27 +127,62 @@ require_once __DIR__ . '/../includes/header.php';
       <?php endif; ?>
     </div>
     <?php if ($uid && !$isSelf): ?>
-      <div style="margin-left:auto">
-        <form method="POST" action="<?= BASE_URL ?>/actions/toggle-friend.php">
-          <?= csrfField() ?>
-          <input type="hidden" name="friend_id" value="<?= $profileId ?>">
-          <input type="hidden" name="action" value="<?= $isFriend ? 'remove' : 'add' ?>">
-          <input type="hidden" name="redirect" value="<?= htmlspecialchars(BASE_URL . '/pages/user-profile.php?id=' . $profileId) ?>">
-          <button type="submit" class="btn <?= $isFriend ? 'btn-muted' : '' ?>">
-            <?= $isFriend ? 'Friend ✓' : '+ Add Friend' ?>
-          </button>
-        </form>
+      <div style="margin-left:auto;display:flex;flex-direction:column;gap:8px;align-items:flex-end">
+        <?php if ($isFriend): ?>
+          <form method="POST" action="<?= BASE_URL ?>/actions/toggle-friend.php">
+            <?= csrfField() ?>
+            <input type="hidden" name="friend_id" value="<?= $profileId ?>">
+            <input type="hidden" name="action" value="remove">
+            <input type="hidden" name="redirect" value="<?= htmlspecialchars(BASE_URL . '/pages/user-profile.php?id=' . $profileId) ?>">
+            <button type="submit" class="btn btn-muted">Friends ✓</button>
+          </form>
+        <?php elseif ($theySentRequest): ?>
+          <div style="display:flex;gap:8px">
+            <form method="POST" action="<?= BASE_URL ?>/actions/respond-friend.php">
+              <?= csrfField() ?>
+              <input type="hidden" name="sender_id" value="<?= $profileId ?>">
+              <input type="hidden" name="action" value="accept">
+              <button type="submit" class="btn">Accept Request</button>
+            </form>
+            <form method="POST" action="<?= BASE_URL ?>/actions/respond-friend.php">
+              <?= csrfField() ?>
+              <input type="hidden" name="sender_id" value="<?= $profileId ?>">
+              <input type="hidden" name="action" value="decline">
+              <button type="submit" class="btn btn-muted">Decline</button>
+            </form>
+          </div>
+        <?php elseif ($iSentRequest): ?>
+          <span class="btn btn-muted" style="opacity:.7;cursor:default">Request Sent</span>
+        <?php else: ?>
+          <form method="POST" action="<?= BASE_URL ?>/actions/toggle-friend.php">
+            <?= csrfField() ?>
+            <input type="hidden" name="friend_id" value="<?= $profileId ?>">
+            <input type="hidden" name="action" value="add">
+            <input type="hidden" name="redirect" value="<?= htmlspecialchars(BASE_URL . '/pages/user-profile.php?id=' . $profileId) ?>">
+            <button type="submit" class="btn">+ Add Friend</button>
+          </form>
+        <?php endif; ?>
       </div>
     <?php endif; ?>
   </div>
 
-  <div class="stats-grid" style="margin-bottom:32px">
+  <div class="stats-grid" style="margin-bottom:<?= $compatibility !== null ? '16px' : '32px' ?>">
     <div class="stat-card"><div class="stat-num"><?= (int)$stats['total'] ?></div><div class="stat-label">Library Entries</div></div>
     <div class="stat-card"><div class="stat-num"><?= (int)$stats['anime'] ?></div><div class="stat-label">Anime</div></div>
     <div class="stat-card"><div class="stat-num"><?= (int)$stats['manga'] ?></div><div class="stat-label">Manga</div></div>
     <div class="stat-card"><div class="stat-num"><?= $reviewCount ?></div><div class="stat-label">Reviews</div></div>
     <div class="stat-card"><div class="stat-num"><?= $friendCount ?></div><div class="stat-label">Friends</div></div>
   </div>
+
+  <?php if ($compatibility !== null): ?>
+  <div style="background:var(--panel);border:1px solid var(--accent);border-radius:10px;padding:16px 20px;margin-bottom:32px;display:flex;align-items:center;gap:16px">
+    <div style="font-size:38px;font-weight:800;color:var(--accent);line-height:1"><?= $compatibility ?>%</div>
+    <div>
+      <div style="font-weight:800;font-size:15px;color:var(--text)">Taste Match</div>
+      <div style="font-size:13px;color:var(--muted)"><?= $commonWorks ?> work<?= $commonWorks !== 1 ? 's' : '' ?> in common</div>
+    </div>
+  </div>
+  <?php endif; ?>
 
   <h3 style="color:var(--accent);font-size:20px;font-weight:800;margin-bottom:14px">Library</h3>
   <?php if ($entries): ?>

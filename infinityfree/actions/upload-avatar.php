@@ -18,8 +18,8 @@ if (!isset($_SESSION['csrf_token']) || !hash_equals($_SESSION['csrf_token'], $_P
     exit('Invalid request.');
 }
 
-$file   = $_FILES['avatar'];
-$maxBytes = 5 * 1024 * 1024; // 5 MB
+$file     = $_FILES['avatar'];
+$maxBytes = 500 * 1024; // 500 KB
 $allowed  = ['image/jpeg', 'image/png', 'image/gif', 'image/webp'];
 
 if ($file['error'] !== UPLOAD_ERR_OK) {
@@ -38,31 +38,16 @@ if (!in_array($mime, $allowed, true)) {
     exit;
 }
 
-$mimeToExt = ['image/jpeg' => 'jpg', 'image/png' => 'png', 'image/gif' => 'gif', 'image/webp' => 'webp'];
-$ext = $mimeToExt[$mime];
-$filename = 'user_' . (int)$_SESSION['user_id'] . '_' . time() . '.' . $ext;
-$uploadDir = __DIR__ . '/../uploads/avatars/';
-
-if (!is_dir($uploadDir)) {
-    mkdir($uploadDir, 0755, true);
-}
-
-// Delete old avatar file if exists
-$stmt = $pdo->prepare('SELECT avatar FROM users WHERE id = ?');
-$stmt->execute([$_SESSION['user_id']]);
-$old = $stmt->fetchColumn();
-if ($old && file_exists($uploadDir . $old)) {
-    unlink($uploadDir . $old);
-}
-
-if (!move_uploaded_file($file['tmp_name'], $uploadDir . $filename)) {
+$imageData = file_get_contents($file['tmp_name']);
+if ($imageData === false) {
     header('Location: ' . BASE_URL . '/pages/profile.php?avatar_error=save');
     exit;
 }
+$dataUrl = 'data:' . $mime . ';base64,' . base64_encode($imageData);
 
 $stmt = $pdo->prepare('UPDATE users SET avatar = ? WHERE id = ?');
-$stmt->execute([$filename, $_SESSION['user_id']]);
-$_SESSION['avatar'] = $filename;
+$stmt->execute([$dataUrl, $_SESSION['user_id']]);
+$_SESSION['avatar'] = $dataUrl;
 
 header('Location: ' . BASE_URL . '/pages/profile.php?saved=1');
 exit;

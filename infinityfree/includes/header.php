@@ -22,6 +22,13 @@ if ($loggedIn && isset($pdo)) {
 }
 
 $isAdmin = $loggedIn && ($_SESSION['role'] ?? '') === 'admin';
+
+$pendingRequestCount = 0;
+if ($loggedIn && isset($pdo)) {
+    $nStmt = $pdo->prepare('SELECT COUNT(*) FROM friends WHERE friend_id = ? AND status = "pending"');
+    $nStmt->execute([$_SESSION['user_id']]);
+    $pendingRequestCount = (int)$nStmt->fetchColumn();
+}
 ?>
 <!DOCTYPE html>
 <html lang="en">
@@ -29,7 +36,7 @@ $isAdmin = $loggedIn && ($_SESSION['role'] ?? '') === 'admin';
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title><?= htmlspecialchars($pageTitle ?? 'AniTrack') ?></title>
-  <link rel="stylesheet" href="<?= BASE_URL ?>/assets/css/style.css?v=20260522-adminfix">
+  <link rel="stylesheet" href="<?= BASE_URL ?>/assets/css/style.css?v=20260529-daily">
 </head>
 <body>
 
@@ -45,8 +52,17 @@ $isAdmin = $loggedIn && ($_SESSION['role'] ?? '') === 'admin';
       <?php endif; ?>
       <li><a href="<?= BASE_URL ?>/pages/home.php"<?= $activePage === 'works' ? ' class="active"' : '' ?>>Works</a></li>
       <li><a href="<?= BASE_URL ?>/pages/seasonal.php"<?= $activePage === 'seasonal' ? ' class="active"' : '' ?>>Seasonal</a></li>
+      <li><a href="<?= BASE_URL ?>/pages/popular.php"<?= $activePage === 'popular' ? ' class="active"' : '' ?>>Popular</a></li>
+      <li><a href="<?= BASE_URL ?>/pages/daily.php"<?= $activePage === 'daily' ? ' class="active"' : '' ?>>Daily Pick</a></li>
       <?php if ($loggedIn): ?>
-        <li><a href="<?= BASE_URL ?>/pages/dashboard.php"<?= $activePage === 'dashboard' ? ' class="active"' : '' ?>>Dashboard</a></li>
+        <li>
+          <a href="<?= BASE_URL ?>/pages/dashboard.php"<?= $activePage === 'dashboard' ? ' class="active"' : '' ?> style="display:flex;align-items:center;gap:6px">
+            Dashboard
+            <?php if ($pendingRequestCount > 0): ?>
+              <span style="background:var(--accent);color:#fff;border-radius:999px;font-size:11px;font-weight:800;padding:1px 7px;line-height:1.6"><?= $pendingRequestCount ?></span>
+            <?php endif; ?>
+          </a>
+        </li>
         <li><a href="<?= BASE_URL ?>/pages/admin-add-work.php"<?= $activePage === 'add-work' ? ' class="active"' : '' ?>>Add Work</a></li>
         <?php if ($isAdmin): ?>
           <li class="has-dropdown">

@@ -10,8 +10,8 @@ function avatarImg($avatar, $username, $class = 'profile-avatar') {
     ];
     $style = $sizes[$class] ?? 'width:72px;height:72px;border-radius:50%;object-fit:cover;display:block;';
     if ($avatar) {
-        $url = BASE_URL . '/uploads/avatars/' . rawurlencode($avatar);
-        return '<img class="' . $cls . '" src="' . htmlspecialchars($url) . '" alt="' . htmlspecialchars($username) . ' avatar" style="' . $style . '">';
+        $src = strpos($avatar, 'data:') === 0 ? $avatar : BASE_URL . '/uploads/avatars/' . rawurlencode($avatar);
+        return '<img class="' . $cls . '" src="' . htmlspecialchars($src, ENT_QUOTES) . '" alt="' . htmlspecialchars($username) . ' avatar" style="' . $style . '">';
     }
     $initial = htmlspecialchars(strtoupper(substr($username, 0, 1)));
     return '<div class="' . $cls . '">' . $initial . '</div>';

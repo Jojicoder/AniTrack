@@ -5,7 +5,7 @@ CREATE TABLE IF NOT EXISTS users (
     email      VARCHAR(255) NOT NULL UNIQUE,
     password   VARCHAR(255) NOT NULL,
     role       ENUM('user','admin') DEFAULT 'user',
-    avatar     VARCHAR(255) DEFAULT NULL,
+    avatar     MEDIUMTEXT DEFAULT NULL,
     bio        TEXT DEFAULT NULL,
     created_at DATETIME DEFAULT CURRENT_TIMESTAMP
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
@@ -21,6 +21,7 @@ CREATE TABLE IF NOT EXISTS works (
     release_year      INT,
     episodes_chapters VARCHAR(50),
     air_status        ENUM('Airing','Ongoing','Completed') DEFAULT 'Completed',
+    mal_id            INT DEFAULT NULL,
     created_at        DATETIME DEFAULT CURRENT_TIMESTAMP
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 
@@ -32,6 +33,7 @@ CREATE TABLE IF NOT EXISTS user_library (
     rating     TINYINT UNSIGNED DEFAULT NULL,
     note       TEXT,
     created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+    updated_at DATETIME DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
     FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE,
     FOREIGN KEY (work_id) REFERENCES works(id) ON DELETE CASCADE,
     UNIQUE KEY unique_user_work (user_id, work_id)
@@ -54,6 +56,7 @@ CREATE TABLE IF NOT EXISTS friends (
     id         INT AUTO_INCREMENT PRIMARY KEY,
     user_id    INT NOT NULL,
     friend_id  INT NOT NULL,
+    status     ENUM('pending','accepted') NOT NULL DEFAULT 'pending',
     created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
     FOREIGN KEY (user_id)   REFERENCES users(id) ON DELETE CASCADE,
     FOREIGN KEY (friend_id) REFERENCES users(id) ON DELETE CASCADE,
@@ -63,3 +66,9 @@ CREATE TABLE IF NOT EXISTS friends (
 -- Migration (run only if upgrading from old schema):
 -- ALTER TABLE users ADD COLUMN role ENUM('user','admin') DEFAULT 'user' AFTER password;
 -- ALTER TABLE users ADD COLUMN bio TEXT DEFAULT NULL AFTER avatar;
+-- ALTER TABLE works ADD COLUMN mal_id INT DEFAULT NULL AFTER air_status;
+-- ALTER TABLE friends ADD COLUMN status ENUM('pending','accepted') NOT NULL DEFAULT 'pending' AFTER friend_id;
+-- ALTER TABLE user_library ADD COLUMN updated_at DATETIME DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP AFTER created_at;
+-- UPDATE friends SET status = 'accepted';
+-- INSERT IGNORE INTO friends (user_id, friend_id, status)
+-- SELECT friend_id, user_id, 'accepted' FROM friends WHERE status = 'accepted';

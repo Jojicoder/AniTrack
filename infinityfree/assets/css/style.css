@@ -552,6 +552,50 @@ img.social-avatar {
 .profile-info h3 { font-size: 22px; font-weight: 800; margin-bottom: 4px; }
 .profile-info p { color: var(--muted); font-size: 14px; }
 
+/* ─── Social Panel (Dashboard friends / search) ────────────────────────────── */
+.social-panel {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 24px;
+  margin-top: 32px;
+}
+.social-column {
+  background: var(--panel);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  padding: 20px;
+}
+.social-column h3 {
+  font-size: 16px;
+  font-weight: 800;
+  color: var(--accent);
+  margin-bottom: 14px;
+}
+.social-list {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  margin-top: 14px;
+}
+.social-user {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 8px 10px;
+  background: var(--panel-soft);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+}
+.social-user .user-link {
+  font-weight: 700;
+  font-size: 14px;
+  color: var(--text);
+}
+.social-user .user-link:hover { color: var(--accent); }
+@media (max-width: 700px) {
+  .social-panel { grid-template-columns: 1fr; }
+}
+
 /* ─── Admin Table ───────────────────────────────────────────────────────────── */
 .table-wrap { overflow-x: auto; margin-top: 20px; }
 .admin-table {
@@ -772,6 +816,33 @@ footer {
 }
 .rec-info h3 { font-size: 16px; font-weight: 800; margin-bottom: 6px; }
 .rec-info p { font-size: 13px; color: var(--muted); line-height: 1.6; }
+
+/* ─── Daily Pick ───────────────────────────────────────────────────────────── */
+.daily-pick-card {
+  background: var(--panel);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  overflow: hidden;
+}
+.daily-pick-layout {
+  display: grid;
+  grid-template-columns: minmax(220px, 320px) 1fr;
+}
+.daily-pick-cover {
+  min-height: 460px;
+  background: #111;
+}
+.daily-pick-body {
+  padding: 28px;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+@media (max-width: 760px) {
+  .daily-pick-layout { grid-template-columns: 1fr; }
+  .daily-pick-cover { min-height: 0; aspect-ratio: 2 / 3; }
+  .daily-pick-body { padding: 20px; }
+}
 
 /* ─── About / Contact ───────────────────────────────────────────────────────── */
 .about-grid {

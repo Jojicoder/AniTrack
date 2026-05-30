@@ -244,7 +244,7 @@ function fillForm(item) {
     document.getElementById('air-status').value = STATUS_MAP[item.status];
   }
 
-  document.getElementById('description').value = item.synopsis || '';
+  document.getElementById('description').value = String(item.synopsis || '').replace(/\s*\[Written by MAL Rewrite\]\s*/gi, ' ').trim();
   setPreview(item.images?.jpg?.large_image_url || item.images?.jpg?.image_url || '');
 }
 

@@ -20,9 +20,9 @@ $stmt->execute([$_SESSION['user_id']]);
 $entries = $stmt->fetchAll();
 
 $total      = count($entries);
-$animeCount = count(array_filter($entries, fn($e) => $e['type'] === 'anime'));
+$animeCount = count(array_filter($entries, function($e) { return $e['type'] === 'anime'; }));
 $mangaCount = $total - $animeCount;
-$doneCount  = count(array_filter($entries, fn($e) => $e['status'] === 'Completed'));
+$doneCount  = count(array_filter($entries, function($e) { return $e['status'] === 'Completed'; }));
 
 $statusColors = [
     'Watching'      => '#7b3ff2',

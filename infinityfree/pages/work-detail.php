@@ -47,6 +47,8 @@ $jikanCovers = [
     'Chainsaw Man'    => 'https://cdn.myanimelist.net/images/manga/3/216464l.jpg',
 ];
 $coverUrl = $work['image_url'] ?: ($jikanCovers[$work['title']] ?? '');
+$description = preg_replace('/\s*\[Written by MAL Rewrite\]\s*/i', ' ', $work['description'] ?? '');
+$description = trim($description);
 
 // Reviews
 $stmt = $pdo->prepare('
@@ -69,6 +71,24 @@ if (isset($_SESSION['user_id'])) {
         if ($r['user_id'] === $_SESSION['user_id']) { $myReview = $r; break; }
     }
 }
+
+// Users who have this work in their library
+$stmtWU = $pdo->prepare('
+    SELECT u.id, u.username, u.avatar, ul.status, ul.rating
+    FROM user_library ul JOIN users u ON ul.user_id = u.id
+    WHERE ul.work_id = ?
+    ORDER BY ul.created_at DESC
+    LIMIT 12
+');
+$stmtWU->execute([$id]);
+$workUsers = $stmtWU->fetchAll();
+if (isset($_SESSION['user_id'])) {
+    $uid_excl = (int)$_SESSION['user_id'];
+    $workUsers = array_values(array_filter($workUsers, function($u) use ($uid_excl) { return (int)$u['id'] !== $uid_excl; }));
+}
+$stmtWUTotal = $pdo->prepare('SELECT COUNT(*) FROM user_library WHERE work_id = ?');
+$stmtWUTotal->execute([$id]);
+$workUsersTotal = (int)$stmtWUTotal->fetchColumn();
 
 require_once __DIR__ . '/../includes/helpers.php';
 $pageTitle  = htmlspecialchars($work['title']) . ' - AniTrack';
@@ -125,8 +145,50 @@ require_once __DIR__ . '/../includes/header.php';
         </div>
       </div>
 
-      <?php if ($work['description']): ?>
-        <p class="synopsis"><?= nl2br(htmlspecialchars($work['description'])) ?></p>
+      <?php if ($description): ?>
+        <p class="synopsis"><?= nl2br(htmlspecialchars($description)) ?></p>
+      <?php endif; ?>
+
+      <?php if (!empty($work['mal_id'])): ?>
+        <?php $malType = $work['type'] === 'anime' ? 'anime' : 'manga'; ?>
+        <a href="https://myanimelist.net/<?= $malType ?>/<?= (int)$work['mal_id'] ?>"
+           target="_blank" rel="noopener" class="btn btn-outline" style="margin-bottom:14px;display:inline-block">
+          View on MyAnimeList
+        </a>
+      <?php endif; ?>
+
+      <?php if (!empty($work['mal_id']) && $work['type'] === 'anime'): ?>
+        <div id="streaming-section" style="margin-bottom:14px">
+          <p style="font-size:13px;color:var(--muted);margin-bottom:8px">Where to Watch</p>
+          <div id="streaming-links" style="display:flex;flex-wrap:wrap;gap:8px">
+            <span style="font-size:13px;color:var(--muted)">Loading...</span>
+          </div>
+        </div>
+        <script>
+        (function() {
+          var malId = <?= (int)$work['mal_id'] ?>;
+          var container = document.getElementById('streaming-links');
+          fetch('https://api.jikan.moe/v4/anime/' + malId + '/streaming', {
+            headers: { 'Accept': 'application/json' }
+          })
+          .then(function(r) { return r.ok ? r.json() : Promise.reject(); })
+          .then(function(payload) {
+            var links = Array.isArray(payload.data) ? payload.data : [];
+            if (!links.length) {
+              document.getElementById('streaming-section').style.display = 'none';
+              return;
+            }
+            container.innerHTML = links.map(function(s) {
+              return '<a href="' + s.url + '" target="_blank" rel="noopener" class="btn btn-outline" style="font-size:13px;padding:6px 14px">'
+                + s.name.replace(/</g, '&lt;').replace(/>/g, '&gt;')
+                + '</a>';
+            }).join('');
+          })
+          .catch(function() {
+            document.getElementById('streaming-section').style.display = 'none';
+          });
+        })();
+        </script>
       <?php endif; ?>
 
       <div class="work-actions">
@@ -165,6 +227,32 @@ require_once __DIR__ . '/../includes/header.php';
     </div>
   </div>
 </section>
+
+<?php if ($workUsers): ?>
+<section class="section" style="padding-top:0">
+  <h3 style="color:var(--accent);font-size:18px;font-weight:800;margin-bottom:14px">
+    In <?= $workUsersTotal ?> user<?= $workUsersTotal !== 1 ? 's\'' : '\'s' ?> library
+  </h3>
+  <div style="display:flex;flex-wrap:wrap;gap:10px;margin-bottom:8px">
+    <?php foreach ($workUsers as $wu): ?>
+    <a href="<?= BASE_URL ?>/pages/user-profile.php?id=<?= $wu['id'] ?>"
+       style="display:flex;align-items:center;gap:8px;background:var(--panel);border:1px solid var(--border);border-radius:8px;padding:8px 12px;text-decoration:none;transition:border-color .2s"
+       onmouseover="this.style.borderColor='var(--accent)'" onmouseout="this.style.borderColor='var(--border)'">
+      <?= avatarImg($wu['avatar'], $wu['username'], 'mini-avatar') ?>
+      <div>
+        <div style="font-size:13px;color:var(--text);font-weight:600"><?= htmlspecialchars($wu['username']) ?></div>
+        <div style="font-size:11px;color:var(--muted)"><?= htmlspecialchars($wu['status']) ?><?= $wu['rating'] ? ' &middot; ★' . $wu['rating'] : '' ?></div>
+      </div>
+    </a>
+    <?php endforeach; ?>
+    <?php if ($workUsersTotal > count($workUsers) + (isset($_SESSION['user_id']) ? 1 : 0)): ?>
+      <div style="display:flex;align-items:center;padding:8px 12px;color:var(--muted);font-size:13px">
+        +<?= $workUsersTotal - count($workUsers) - (isset($_SESSION['user_id']) ? 1 : 0) ?> more
+      </div>
+    <?php endif; ?>
+  </div>
+</section>
+<?php endif; ?>
 
 <section class="section" style="padding-top:0" id="reviews">
   <h3 style="color:var(--accent);font-size:22px;font-weight:800;margin-bottom:6px">
@@ -224,6 +312,18 @@ require_once __DIR__ . '/../includes/header.php';
           <a href="<?= BASE_URL ?>/pages/user-profile.php?id=<?= $r['user_id'] ?>" class="user-link"><?= htmlspecialchars($r['username']) ?></a>
           <span class="rating-badge">&#9733; <?= $r['rating'] ?> <small>/ 10</small></span>
           <span class="review-date"><?= htmlspecialchars(substr($r['created_at'], 0, 10)) ?></span>
+          <?php if (isset($_SESSION['user_id']) && (int)$r['user_id'] === (int)$_SESSION['user_id']): ?>
+            <div style="margin-left:auto;display:flex;gap:6px">
+              <a href="#reviews" class="btn btn-sm btn-outline" onclick="document.querySelector('textarea[name=body]').focus()">Edit</a>
+              <form method="POST" action="<?= BASE_URL ?>/actions/delete-review.php"
+                    onsubmit="return confirm('Delete this review?')">
+                <?= csrfField() ?>
+                <input type="hidden" name="review_id" value="<?= $r['id'] ?>">
+                <input type="hidden" name="redirect" value="<?= htmlspecialchars(BASE_URL . '/pages/work-detail.php?id=' . $id) ?>">
+                <button type="submit" class="btn btn-sm btn-muted">Delete</button>
+              </form>
+            </div>
+          <?php endif; ?>
         </div>
         <p class="review-text"><?= nl2br(htmlspecialchars($r['body'])) ?></p>
         <?php if ($r['user_status']): ?>

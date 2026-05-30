@@ -49,6 +49,10 @@ if ($redirect === 'detail') {
     header('Location: ' . BASE_URL . '/pages/work-detail.php?id=' . $workId);
 } elseif ($redirect === 'seasonal') {
     header('Location: ' . BASE_URL . '/pages/seasonal.php');
+} elseif ($redirect === 'popular') {
+    header('Location: ' . BASE_URL . '/pages/popular.php');
+} elseif ($redirect === 'daily') {
+    header('Location: ' . BASE_URL . '/pages/daily.php');
 } else {
     header('Location: ' . BASE_URL . '/pages/home.php');
 }

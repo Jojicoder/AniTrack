@@ -1,0 +1,31 @@
+-- Set MAL IDs for seed works so streaming links can be fetched from Jikan API
+-- Run once after schema migration: ALTER TABLE works ADD COLUMN mal_id INT DEFAULT NULL AFTER air_status;
+
+UPDATE works SET mal_id = 38000  WHERE title = 'Demon Slayer'                          AND type = 'anime';
+UPDATE works SET mal_id = 16498  WHERE title = 'Attack on Titan'                        AND type = 'anime';
+UPDATE works SET mal_id = 40748  WHERE title = 'Jujutsu Kaisen'                         AND type = 'anime';
+UPDATE works SET mal_id = 37521  WHERE title = 'Vinland Saga'                           AND type = 'anime';
+UPDATE works SET mal_id = 5114   WHERE title = 'Fullmetal Alchemist: Brotherhood'       AND type = 'anime';
+UPDATE works SET mal_id = 1535   WHERE title = 'Death Note'                             AND type = 'anime';
+UPDATE works SET mal_id = 50265  WHERE title = 'Spy x Family'                           AND type = 'anime';
+UPDATE works SET mal_id = 52991  WHERE title = 'Frieren: Beyond Journey''s End'         AND type = 'anime';
+UPDATE works SET mal_id = 31964  WHERE title = 'My Hero Academia'                       AND type = 'anime';
+UPDATE works SET mal_id = 20     WHERE title = 'Naruto'                                 AND type = 'anime';
+UPDATE works SET mal_id = 20583  WHERE title = 'Haikyu!!'                               AND type = 'anime';
+UPDATE works SET mal_id = 32281  WHERE title = 'Your Name.'                             AND type = 'anime';
+UPDATE works SET mal_id = 1      WHERE title = 'Cowboy Bebop'                           AND type = 'anime';
+UPDATE works SET mal_id = 9253   WHERE title = 'Steins;Gate'                            AND type = 'anime';
+UPDATE works SET mal_id = 11061  WHERE title = 'Hunter x Hunter'                        AND type = 'anime';
+UPDATE works SET mal_id = 1575   WHERE title = 'Code Geass: Lelouch of the Rebellion'   AND type = 'anime';
+UPDATE works SET mal_id = 30276  WHERE title = 'One Punch Man'                          AND type = 'anime';
+UPDATE works SET mal_id = 32182  WHERE title = 'Mob Psycho 100'                         AND type = 'anime';
+UPDATE works SET mal_id = 33352  WHERE title = 'Violet Evergarden'                      AND type = 'anime';
+UPDATE works SET mal_id = 37999  WHERE title = 'Kaguya-sama: Love is War'               AND type = 'anime';
+UPDATE works SET mal_id = 42310  WHERE title = 'Cyberpunk: Edgerunners'                 AND type = 'anime';
+UPDATE works SET mal_id = 47917  WHERE title = 'Bocchi the Rock!'                       AND type = 'anime';
+UPDATE works SET mal_id = 22319  WHERE title = 'Tokyo Ghoul'                            AND type = 'anime';
+UPDATE works SET mal_id = 11757  WHERE title = 'Sword Art Online'                       AND type = 'anime';
+UPDATE works SET mal_id = 13     WHERE title = 'One Piece'                              AND type = 'manga';
+UPDATE works SET mal_id = 2      WHERE title = 'Berserk'                                AND type = 'manga';
+UPDATE works SET mal_id = 116778 WHERE title = 'Chainsaw Man'                           AND type = 'manga';
+UPDATE works SET mal_id = 119919 WHERE title = 'Blue Period'                            AND type = 'manga';

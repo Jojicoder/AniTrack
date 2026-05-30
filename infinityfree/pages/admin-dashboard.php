@@ -12,7 +12,11 @@ $userCount   = (int)$pdo->query('SELECT COUNT(*) FROM users')->fetchColumn();
 $workCount   = (int)$pdo->query('SELECT COUNT(*) FROM works')->fetchColumn();
 $reviewCount = (int)$pdo->query('SELECT COUNT(*) FROM reviews')->fetchColumn();
 $libraryCount= (int)$pdo->query('SELECT COUNT(*) FROM user_library')->fetchColumn();
-$friendCount = (int)$pdo->query('SELECT COUNT(*) FROM friends')->fetchColumn();
+$friendCount = (int)$pdo->query('
+    SELECT COUNT(DISTINCT CONCAT(LEAST(user_id, friend_id), "-", GREATEST(user_id, friend_id)))
+    FROM friends
+    WHERE status = "accepted"
+')->fetchColumn();
 
 $recentUsers = $pdo->query('
     SELECT id, username, email, role, created_at

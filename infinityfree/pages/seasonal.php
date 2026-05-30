@@ -5,18 +5,26 @@ require_once __DIR__ . '/../config/db.php';
 require_once __DIR__ . '/../includes/helpers.php';
 
 $dbTitles  = array();
+$dbMalIds  = array();
 $myWorkIds = array();
 
 try {
-    $stmt = $pdo->query('SELECT id, title FROM works WHERE type = "Anime"');
+    $stmt = $pdo->query('SELECT id, title, mal_id FROM works WHERE type = "anime"');
     foreach ($stmt->fetchAll(PDO::FETCH_ASSOC) as $row) {
         $dbTitles[strtolower($row['title'])] = array(
             'id' => (int)$row['id'],
             'title' => $row['title'],
         );
+        if (!empty($row['mal_id'])) {
+            $dbMalIds['anime:' . (int)$row['mal_id']] = array(
+                'id' => (int)$row['id'],
+                'title' => $row['title'],
+            );
+        }
     }
 } catch (Exception $e) {
     $dbTitles = array();
+    $dbMalIds = array();
 }
 
 if (isset($_SESSION['user_id'])) {
@@ -67,6 +75,7 @@ window.ANITRACK_SEASONAL = {
   loggedIn: <?= isset($_SESSION['user_id']) ? 'true' : 'false' ?>,
   csrfToken: <?= json_encode($_SESSION['csrf_token'] ?? '', JSON_HEX_TAG | JSON_HEX_APOS | JSON_HEX_AMP | JSON_HEX_QUOT) ?>,
   dbTitles: <?= json_encode($dbTitles, JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE | JSON_HEX_TAG | JSON_HEX_APOS | JSON_HEX_AMP | JSON_HEX_QUOT) ?>,
+  dbMalIds: <?= json_encode($dbMalIds, JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE | JSON_HEX_TAG | JSON_HEX_APOS | JSON_HEX_AMP | JSON_HEX_QUOT) ?>,
   myWorkIds: <?= json_encode($myWorkIds) ?>
 };
 
@@ -103,24 +112,49 @@ window.ANITRACK_SEASONAL = {
     }
     return '';
   }
+  function cleanSynopsis(value) {
+    return String(value || '').replace(/\s*\[Written by MAL Rewrite\]\s*/gi, ' ').trim();
+  }
 
-  function libraryControls(dbWorkId, inLibrary) {
+  function libraryControls(anime, dbWorkId, inLibrary) {
     if (!state.loggedIn) {
       return '<a href="' + esc(state.baseUrl) + '/auth/login.php" class="btn btn-muted" style="font-size:13px">Login to Add</a>';
-    }
-
-    if (!dbWorkId) {
-      return '<span class="btn btn-muted" style="font-size:12px;opacity:.6;cursor:default">Not in AniTrack yet</span>';
     }
 
     if (inLibrary) {
       return '<a href="' + esc(state.baseUrl) + '/pages/library.php" class="btn btn-muted" style="font-size:13px">In My Library &#10003;</a>';
     }
 
+    if (dbWorkId) {
+      return [
+        '<form method="POST" action="' + esc(state.baseUrl) + '/actions/add-to-library.php">',
+        '<input type="hidden" name="csrf_token" value="' + esc(state.csrfToken) + '">',
+        '<input type="hidden" name="work_id" value="' + esc(dbWorkId) + '">',
+        '<input type="hidden" name="redirect" value="seasonal">',
+        '<button type="submit" class="btn" style="width:100%;font-size:13px">+ Add to My Library</button>',
+        '</form>'
+      ].join('');
+    }
+
+    // Not in DB yet — import from Jikan data and add to library
+    var genres = Array.isArray(anime.genres) && anime.genres.length ? anime.genres[0].name : '';
+    var year = (anime.aired && anime.aired.prop && anime.aired.prop.from && anime.aired.prop.from.year)
+      ? String(anime.aired.prop.from.year) : '';
+    var eps = anime.episodes ? anime.episodes + ' eps' : '';
     return [
-      '<form method="POST" action="' + esc(state.baseUrl) + '/actions/add-to-library.php">',
+      '<form method="POST" action="' + esc(state.baseUrl) + '/actions/import-seasonal.php">',
       '<input type="hidden" name="csrf_token" value="' + esc(state.csrfToken) + '">',
-      '<input type="hidden" name="work_id" value="' + esc(dbWorkId) + '">',
+      '<input type="hidden" name="mal_id" value="' + esc(anime.mal_id || '') + '">',
+      '<input type="hidden" name="title" value="' + esc(anime.title || '') + '">',
+      '<input type="hidden" name="title_jp" value="' + esc(anime.title_japanese || '') + '">',
+      '<input type="hidden" name="genre" value="' + esc(genres) + '">',
+      '<input type="hidden" name="description" value="' + esc(cleanSynopsis(anime.synopsis)) + '">',
+      '<input type="hidden" name="image_url" value="' + esc(imageFor(anime)) + '">',
+      '<input type="hidden" name="release_year" value="' + esc(year) + '">',
+      '<input type="hidden" name="episodes_chapters" value="' + esc(eps) + '">',
+      '<input type="hidden" name="jikan_status" value="' + esc(anime.status || '') + '">',
+      '<input type="hidden" name="lib_status" value="Plan to Watch">',
+      '<input type="hidden" name="work_type" value="anime">',
       '<input type="hidden" name="redirect" value="seasonal">',
       '<button type="submit" class="btn" style="width:100%;font-size:13px">+ Add to My Library</button>',
       '</form>'
@@ -134,10 +168,10 @@ window.ANITRACK_SEASONAL = {
     var score = anime.score || '';
     var eps = anime.episodes || '';
     var status = anime.status || '';
-    var synopsis = anime.synopsis || '';
+    var synopsis = cleanSynopsis(anime.synopsis);
     var malId = anime.mal_id || '';
     var genres = Array.isArray(anime.genres) ? anime.genres.map(function(g) { return g.name; }).filter(Boolean).slice(0, 2) : [];
-    var dbWork = state.dbTitles[titleKey(title)];
+    var dbWork = state.dbMalIds['anime:' + malId] || state.dbTitles[titleKey(title)];
     var dbWorkId = dbWork ? dbWork.id : null;
     var inLibrary = dbWorkId && state.myWorkIds.indexOf(Number(dbWorkId)) !== -1;
 
@@ -164,7 +198,7 @@ window.ANITRACK_SEASONAL = {
       synopsis ? '<p style="font-size:12px;color:var(--muted);margin-bottom:0;line-height:1.5">' + esc(truncate(synopsis, 120)) + '</p>' : '',
       '<div style="display:flex;flex-direction:column;gap:6px;margin-top:10px">',
       malId ? '<a href="https://myanimelist.net/anime/' + esc(malId) + '" target="_blank" rel="noopener" class="btn btn-outline" style="font-size:13px">View on MAL</a>' : '',
-      libraryControls(dbWorkId, inLibrary),
+      libraryControls(anime, dbWorkId, inLibrary),
       '</div>',
       '</div>',
       '</div>'

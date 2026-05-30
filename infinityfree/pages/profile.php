@@ -29,7 +29,7 @@ $stmt2 = $pdo->prepare('SELECT COUNT(*) FROM reviews WHERE user_id = ?');
 $stmt2->execute([$uid]);
 $reviewCount = (int)$stmt2->fetchColumn();
 
-$stmt3 = $pdo->prepare('SELECT COUNT(*) FROM friends WHERE user_id = ?');
+$stmt3 = $pdo->prepare('SELECT COUNT(*) FROM friends WHERE user_id = ? AND status = "accepted"');
 $stmt3->execute([$uid]);
 $friendCount = (int)$stmt3->fetchColumn();
 
@@ -62,7 +62,7 @@ $saved   = isset($_GET['saved']);
 $avatarError = $_GET['avatar_error'] ?? '';
 $avatarErrors = [
     'upload' => 'Upload failed. Please try again.',
-    'size'   => 'Image must be under 5 MB.',
+    'size'   => 'Image must be under 500 KB.',
     'type'   => 'Only JPEG, PNG, GIF and WebP images are allowed.',
     'save'   => 'Could not save the image. Please try again.',
 ];
